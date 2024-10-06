@@ -127,12 +127,12 @@ class _TicketPageState extends State<TicketPage> {
           ElevatedButton.icon(
             onPressed: () {},
             icon: Icon(Icons.sort),
-            label: Text('Sort'),
+            label: Text('Urutkan'),
           ),
           ElevatedButton.icon(
             onPressed: () {},
             icon: Icon(Icons.directions_bus),
-            label: Text('Operators'),
+            label: Text('Bus'),
           ),
         ],
       ),
@@ -228,7 +228,7 @@ class _TicketPageState extends State<TicketPage> {
             ),
             SizedBox(height: 4),
             Text(
-              '${ticket.bus.seat - ticket.filledSeat.length} out of ${ticket.bus.seat} seats available',
+              '${ticket.bus.seat - ticket.filledSeat.length} dari ${ticket.bus.seat} kursi tersedia',
               style: TextStyle(color: Colors.grey),
             ),
             SizedBox(height: 8),
@@ -266,7 +266,7 @@ class _TicketPageState extends State<TicketPage> {
         children: [
           if (selectedFrom != null && selectedFrom!.isNotEmpty)
             Chip(
-              label: Text('From: $selectedFrom'),
+              label: Text('Dari: $selectedFrom'),
               deleteIcon: Icon(Icons.clear),
               onDeleted: () {
                 setState(() {
@@ -277,7 +277,7 @@ class _TicketPageState extends State<TicketPage> {
             ),
           if (selectedTo != null && selectedTo!.isNotEmpty)
             Chip(
-              label: Text('To: $selectedTo'),
+              label: Text('Ke: $selectedTo'),
               deleteIcon: Icon(Icons.clear),
               onDeleted: () {
                 setState(() {
@@ -288,7 +288,7 @@ class _TicketPageState extends State<TicketPage> {
             ),
           if (selectedDate != null && selectedDate!.isNotEmpty)
             Chip(
-              label: Text('Date: $selectedDate'),
+              label: Text('Tanggal: $selectedDate'),
               deleteIcon: Icon(Icons.clear),
               onDeleted: () {
                 setState(() {
@@ -300,7 +300,7 @@ class _TicketPageState extends State<TicketPage> {
           if (selectedPriceRange.start > 0 || selectedPriceRange.end < 1000000)
             Chip(
               label: Text(
-                  'Price: Rp ${selectedPriceRange.start.round()} - Rp ${selectedPriceRange.end.round()}'),
+                  'Harga: Rp ${selectedPriceRange.start.round()} - Rp ${selectedPriceRange.end.round()}'),
               deleteIcon: Icon(Icons.clear),
               onDeleted: () {
                 setState(() {
@@ -341,7 +341,7 @@ class _TicketPageState extends State<TicketPage> {
 
                     // "From" TextField
                     TextField(
-                      decoration: InputDecoration(labelText: 'From'),
+                      decoration: InputDecoration(labelText: 'Dari'),
                       controller: TextEditingController(
                           text: tempFrom), // prefill with the current value
                       onChanged: (value) {
@@ -351,7 +351,7 @@ class _TicketPageState extends State<TicketPage> {
 
                     // "To" TextField
                     TextField(
-                      decoration: InputDecoration(labelText: 'To'),
+                      decoration: InputDecoration(labelText: 'Ke'),
                       controller: TextEditingController(
                           text: tempTo), // prefill with the current value
                       onChanged: (value) {
@@ -365,7 +365,7 @@ class _TicketPageState extends State<TicketPage> {
                       controller: TextEditingController(
                           text: tempDate), // prefill with current value
                       decoration: InputDecoration(
-                        labelText: 'Date',
+                        labelText: 'Tanggal',
                       ),
                       onTap: () async {
                         DateTime? pickedDate = await showDatePicker(
@@ -385,7 +385,7 @@ class _TicketPageState extends State<TicketPage> {
 
                     // Price Range Slider
                     Text(
-                      'Price',
+                      'Harga',
                       style: TextStyle(fontSize: 16),
                     ),
                     RangeSlider(
@@ -431,39 +431,42 @@ class _TicketPageState extends State<TicketPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.91,
-      child: Column(
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.05,
-          ),
-          _buildFilters(),
-          // Text('test'),
-          _buildActiveFilters(),
-          Expanded(
-            child: isLoading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : listTicket == null || listTicket!.data.isEmpty
-                    ? Center(
-                        child: Text('No Ticket Found'),
-                      )
-                    : Container(
-                        // color: Colors.red,
-                        child: ListView.builder(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          itemCount: listTicket!.data.length,
-                          physics: BouncingScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            return _buildBusCard(
-                                context, listTicket!.data[index]);
-                          },
+    return Scaffold(
+      appBar: AppBar(
+        // backgroundColor: Colors.white,
+        title: const Text('Daftar Tiket'),
+        automaticallyImplyLeading:
+            false, // Optional: if you want to remove the back button
+      ),
+      body: Container(
+        height: MediaQuery.of(context).size.height * 0.91,
+        child: Column(
+          children: [
+            _buildFilters(),
+            _buildActiveFilters(),
+            Expanded(
+              child: isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : listTicket == null || listTicket!.data.isEmpty
+                      ? Center(
+                          child: Text('No Ticket Found'),
+                        )
+                      : Container(
+                          child: ListView.builder(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            itemCount: listTicket!.data.length,
+                            physics: BouncingScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              return _buildBusCard(
+                                  context, listTicket!.data[index]);
+                            },
+                          ),
                         ),
-                      ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

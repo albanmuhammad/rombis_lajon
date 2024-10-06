@@ -13,6 +13,8 @@ class OrderPage extends StatefulWidget {
 class _OrderPageState extends State<OrderPage> {
   ListOrder? listOrder;
   bool isLoading = true;
+  PageController _pageController = PageController();
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -29,11 +31,50 @@ class _OrderPageState extends State<OrderPage> {
     });
   }
 
+  void onPageChanged(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
+  void onTabTapped(int index) {
+    _pageController.animateToPage(index,
+        duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+  }
+
+  // Helper function to build tab items
+  Widget _buildTabItem(String title, int index) {
+    return GestureDetector(
+      onTap: () => onTabTapped(index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: _currentIndex == index ? Colors.red : Colors.black,
+            ),
+          ),
+          SizedBox(height: 5),
+          if (_currentIndex == index)
+            Container(
+              height: 3,
+              width: 60,
+              color: Colors.red,
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Orders'),
+        automaticallyImplyLeading: false,
+        title: const Text('Pesanan Saya'),
       ),
       body: isLoading
           ? const Center(
@@ -77,7 +118,7 @@ class OrderCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Price: Rp${order.price}, Seat: ${order.seat}',
+              'Harga: Rp${order.price}, Kursi: ${order.seat}',
               style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
             const SizedBox(height: 8),
@@ -85,7 +126,7 @@ class OrderCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Route: ${order.route.first} to ${order.route.last}',
+                    'Dari: ${order.route.first} Ke ${order.route.last}',
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),

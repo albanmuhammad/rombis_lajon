@@ -116,14 +116,14 @@ class _LoginPageState extends State<LoginPage> {
                               );
                             } else {
                               // Check if the user is active or not
-                              if (x.isActive == 0) {
+                              if (x.isActive == false) {
                                 // Navigate to UnregisterPage if is_active is 0
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => UnregisterPage()),
                                 );
-                              } else if (x.isActive == 1) {
+                              } else if (x.isActive == true) {
                                 // Navigate to HomePage if is_active is 1
                                 Navigator.pushReplacement(
                                   context,
@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: () {},
                     icon: Icon(Icons.login, color: Colors.black),
                     label: Text(
-                      'Continue with Google',
+                      'Lanjut dengan Google',
                       style: TextStyle(color: Colors.black),
                     ),
                     style: OutlinedButton.styleFrom(

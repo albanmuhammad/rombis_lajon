@@ -36,16 +36,16 @@ class _UserPageState extends State<UserPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('User Profile'),
+        title: const Text('Profil Akun'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.edit), // Replace with your pencil icon path
-            onPressed: () {
-              setState(() {
-                _isEditing = !_isEditing;
-              });
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.edit), // Replace with your pencil icon path
+          //   onPressed: () {
+          //     setState(() {
+          //       _isEditing = !_isEditing;
+          //     });
+          //   },
+          // ),
           IconButton(
             icon: Icon(Icons.logout), // Replace with your pencil icon path
             onPressed: () {

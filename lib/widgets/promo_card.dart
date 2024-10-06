@@ -21,11 +21,6 @@ class PromoCard extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              Text(
-                'Diskon',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: primaryColor),
-              ),
               SizedBox(height: 10),
               Text(
                 discount,

@@ -210,25 +210,24 @@ class _BookingPageState extends State<BookingPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmation',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          title:
+              Text('Konfirmasi', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Departure:',
+                Text('Berangkat dari:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(departureRoute!),
                 SizedBox(height: 8),
-                Text('Destination:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('Tujuan:', style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(selectedDestination!),
                 SizedBox(height: 8),
-                Text('Selected Seats:',
+                Text('Kursi yang dipilih:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(selectedSeats.join(', ')),
                 SizedBox(height: 8),
-                Text('Total Price:',
+                Text('Total Harga:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 Text(formatRupiah(totalPrice)),
               ],
@@ -318,7 +317,7 @@ class _BookingPageState extends State<BookingPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('FROM'),
+                                Text('Dari'),
                                 Text(
                                     formatBusDetailTime(
                                         '${busDetail!.ticket.firstWhere((t) => t.id == ticketId).time.first}'),
@@ -335,7 +334,7 @@ class _BookingPageState extends State<BookingPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Text('TO'),
+                                Text('Ke'),
                                 Text(
                                   formatBusDetailTime(
                                       '${busDetail!.ticket.firstWhere((t) => t.id == ticketId).time[busDetail!.route.indexOf(selectedDestination!)]}'), // End time
@@ -379,7 +378,7 @@ class _BookingPageState extends State<BookingPage> {
                               Row(
                                 children: [
                                   Text(
-                                    'Price:',
+                                    'Harga:',
                                     style: TextStyle(fontSize: 16.0),
                                   ),
                                   SizedBox(width: 10.0),
@@ -398,7 +397,7 @@ class _BookingPageState extends State<BookingPage> {
                           ),
                         SizedBox(height: 10.0),
                         Text(
-                          'Total Price: ${formatRupiah(totalPrice)}',
+                          'Total Harga: ${formatRupiah(totalPrice)}',
                           style: TextStyle(
                               fontSize: 20.0, fontWeight: FontWeight.bold),
                         ),

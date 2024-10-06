@@ -15,7 +15,7 @@ class IntroPage2 extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.only(top: 110.0, bottom: 20.0),
               child: Text(
-                "Welcome to Our App (2)",
+                "Rombil Lajon",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24.0,

@@ -23,16 +23,25 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _toController = TextEditingController();
   TextEditingController _fromController = TextEditingController();
   DateTime selectedDate = DateTime.now();
+  late ListBus? buses;
+  bool isLoading = false;
   @override
   void initState() {
-    // getData();
+    getData();
     super.initState();
   }
 
-  // getData() async {
-  //   buses = await BusService().getAllBus(context);
-  //   print(buses);
-  // }
+  getData() async {
+    setState(() {
+      isLoading = true;
+    });
+    buses = await BusService().getAllBus(context);
+    setState(() {
+      isLoading = false;
+    });
+    print(buses);
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -164,7 +173,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Icon(Icons.search, color: Colors.white),
                       SizedBox(width: 10),
-                      Text("Cari bus", style: TextStyle(color: Colors.white)),
+                      Text("Cari Tiket", style: TextStyle(color: Colors.white)),
                     ],
                   ),
                 ),
@@ -192,36 +201,34 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Text(
-              "Temukan Bus Langganan ana",
+              "Temukan Bus Langganan anda",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            Text(
-              "Cari",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
             SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                PromoCard(
-                  discount: '30% off',
-                  route: 'Rute bus',
-                  icon: Icons.directions_bus,
-                ),
-                PromoCard(
-                  discount: '12% off',
-                  route: 'Rute shuttle',
-                  icon: Icons.directions_bus_filled,
-                ),
-              ],
-            ),
+            isLoading
+                ? CircularProgressIndicator() // Show loading state
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: buses != null
+                        ? buses!.data
+                            .map((bus) {
+                              return PromoCard(
+                                discount:
+                                    '${bus.name}', // Assuming the bus has a discount property
+                                route: bus
+                                    .type, // Assuming the bus has a route property
+                                icon: Icons
+                                    .directions_bus, // Adjust this if needed
+                              );
+                            })
+                            .take(2)
+                            .toList()
+                        : [],
+                  ),
             SizedBox(
               height: 16,
             ),
@@ -240,7 +247,7 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Center(
                   child: Text(
-                "Cari bus",
+                "Cari Bus Lainnya",
               )),
             ),
           ],
