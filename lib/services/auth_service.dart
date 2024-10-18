@@ -71,6 +71,7 @@ class AuthService {
         body: jsonEncode({
           Constant.username: username,
           Constant.password: password,
+          "rememberMe": true
         }));
 
     if (response.statusCode == 200) {
@@ -111,6 +112,49 @@ class AuthService {
     }
   }
 
+  checkUsername(BuildContext context, String username) async {
+    final response = await HttpRequest(context).get(
+      url: Constant.checkUsername + "?username=${username}",
+      useToken: false,
+    );
+    if (response.statusCode == 200) {
+      // Parse the response body
+      Map<String, dynamic> responseBody = jsonDecode(response.body);
+
+      // Return the parsed JSON as a Map
+      return responseBody["id"];
+    } else {
+      // Handle error if the status code is not 200
+      print('Error: ${response.statusCode}');
+      return null;
+    }
+  }
+
+  resetPassword(BuildContext context, String id, String password) async {
+    final response = await HttpRequest(context).post(
+        url: Constant.resetPassword,
+        useToken: false,
+        body: jsonEncode({
+          "id": id,
+          "password": password,
+        }));
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      // final loginResponse = LoginResponse.fromJson(json.decode(response.body));
+
+      // AuthService().setUser(context, loginResponse.data);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: SelectableText("Reset Password Akun Sukses."),
+      ));
+      return true;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: SelectableText("Reset Password Akun gagal."),
+      ));
+      return false;
+    }
+  }
+
   logout(BuildContext context) async {
     final response = await HttpRequest(context).post(
       url: Constant.logout,
@@ -138,7 +182,7 @@ class AuthService {
       useToken: true,
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (response.statusCode == 200) {
       final user = User.fromJson(json.decode(response.body));
 
       return user;

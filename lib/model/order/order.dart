@@ -1,3 +1,5 @@
+import 'package:redbus_project/utils/utilities.dart';
+
 class ListOrder {
   late List<Order> orders;
 
@@ -18,6 +20,7 @@ class Order {
   String id;
   int price;
   int seat;
+  int isPaid;
   List<String> route;
   TicketOrder ticket;
 
@@ -25,6 +28,7 @@ class Order {
     required this.id,
     required this.price,
     required this.seat,
+    required this.isPaid,
     required this.route,
     required this.ticket,
   });
@@ -35,6 +39,7 @@ class Order {
       id: json['id'],
       price: json['price'],
       seat: json['seat'],
+      isPaid: json['is_paid'],
       route: List<String>.from(json['route']),
       ticket: TicketOrder.fromJson(json['ticket']),
     );
@@ -56,12 +61,13 @@ class TicketOrder {
   String date;
   List<String> time;
   BusOrder bus;
+  String currentLocation;
 
-  TicketOrder({
-    required this.date,
-    required this.time,
-    required this.bus,
-  });
+  TicketOrder(
+      {required this.date,
+      required this.time,
+      required this.bus,
+      required this.currentLocation});
 
   // fromJson
   factory TicketOrder.fromJson(Map<String, dynamic> json) {
@@ -69,6 +75,7 @@ class TicketOrder {
       date: json['date'],
       time: List<String>.from(json['time']),
       bus: BusOrder.fromJson(json['bus']),
+      currentLocation: json['current'],
     );
   }
 
@@ -78,6 +85,7 @@ class TicketOrder {
       'date': date,
       'time': time,
       'bus': bus.toJson(),
+      'current': currentLocation
     };
   }
 }

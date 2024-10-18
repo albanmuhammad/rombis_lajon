@@ -7,13 +7,20 @@ import 'package:redbus_project/screen/ticket/ticket_page.dart';
 import 'package:redbus_project/utils/theme.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final int? index;
+  const MainPage({this.index});
 
   @override
   State<MainPage> createState() => _MainPageState();
 }
 
 class _MainPageState extends State<MainPage> {
+  @override
+  void initState() {
+    currentIndex = widget.index != null ? widget.index! : 0;
+    super.initState();
+  }
+
   int currentIndex = 0;
 
   // Variables to store filters

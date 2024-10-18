@@ -44,17 +44,22 @@ class _SplashPageState extends State<SplashPage> {
     var x = await AuthService().getMe(context);
     isLoading = false;
     setState(() {});
-    if (x.isActive == false) {
+    if (x == false) {
       // Navigate to UnregisterPage if is_active is 0
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => UnregisterPage()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
       );
     } else if (x.isActive == true) {
       // Navigate to HomePage if is_active is 1
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainPage()),
+      );
+    } else if (x.isActive == false) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => UnregisterPage()),
       );
     }
   }

@@ -6,7 +6,9 @@ class Constant {
   //Authentication
   static const loginApiUrl = "auth/login";
   static const registerApiUrl = "auth/register";
-  static const getUser = "auth/getUser";
+  static const getUser = "auth/session";
+  static const checkUsername = "auth/username";
+  static const resetPassword = "auth/reset";
   static const logout = "auth/logout";
 
   static const token = 'token';
@@ -22,4 +24,6 @@ class Constant {
   //ticket
   static const tickets = "tickets";
   static const booking = "tickets/seats";
+  static const uniquePrice = "tickets/seats/uniqueprice";
+  static const paymentConfirmation = "tickets/seats/edit";
 }

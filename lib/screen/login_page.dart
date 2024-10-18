@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
   bool isVisible = true;
   bool isLoading = false;
+  bool isForgotPassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +108,9 @@ class _LoginPageState extends State<LoginPage> {
                             // Check if login is successful
                             if (x == false) {
                               // Notify user of failed login using SnackBar
+                              setState(() {
+                                isForgotPassword = true;
+                              });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content:
@@ -146,6 +150,206 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                 SizedBox(height: 10),
                 // OR Text
+                Visibility(
+                  visible: isForgotPassword,
+                  child: TextButton(
+                    onPressed: () {
+                      // Show a modal bottom sheet when "Lupa Password" is clicked
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled:
+                            true, // Allows modal to expand for keyboard
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        builder: (BuildContext context) {
+                          TextEditingController usernameController =
+                              TextEditingController();
+                          return Padding(
+                            padding: MediaQuery.of(context)
+                                .viewInsets, // Adjust for keyboard
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize
+                                    .min, // Makes modal height adjustable
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Reset Password',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Masukkan username/email Anda untuk mereset password.',
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(height: 20),
+                                  TextFormField(
+                                    controller: usernameController,
+                                    decoration: InputDecoration(
+                                      labelText: 'Username/Email',
+                                      border: OutlineInputBorder(),
+                                    ),
+                                  ),
+                                  SizedBox(height: 20),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        // Implement your forgot password logic here
+                                        String username =
+                                            usernameController.text;
+                                        // Close the modal after processing
+                                        var chekUsername = await AuthService()
+                                            .checkUsername(context, username);
+                                        if (chekUsername != null) {
+                                          Navigator.pop(context);
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled:
+                                                true, // Allows modal to expand for keyboard
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                      top: Radius.circular(20)),
+                                            ),
+                                            builder: (BuildContext context) {
+                                              TextEditingController
+                                                  usernameController =
+                                                  TextEditingController();
+                                              return Padding(
+                                                padding: MediaQuery.of(context)
+                                                    .viewInsets, // Adjust for keyboard
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      16.0),
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize
+                                                        .min, // Makes modal height adjustable
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Reset Password',
+                                                        style: TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 10),
+                                                      Text(
+                                                        'Masukkan password baru anda',
+                                                        style: TextStyle(
+                                                            fontSize: 16),
+                                                      ),
+                                                      SizedBox(height: 20),
+                                                      TextFormField(
+                                                        controller:
+                                                            passwordController,
+                                                        decoration:
+                                                            InputDecoration(
+                                                          labelText: 'Password',
+                                                          border:
+                                                              OutlineInputBorder(),
+                                                        ),
+                                                      ),
+                                                      SizedBox(height: 20),
+                                                      SizedBox(
+                                                        width: double.infinity,
+                                                        child: ElevatedButton(
+                                                          onPressed: () async {
+                                                            // Implement your forgot password logic here
+                                                            String password =
+                                                                passwordController
+                                                                    .text;
+                                                            // Close the modal after processing
+                                                            var x = await AuthService()
+                                                                .resetPassword(
+                                                                    context,
+                                                                    chekUsername,
+                                                                    password);
+                                                            if (x == true) {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              ScaffoldMessenger
+                                                                      .of(
+                                                                          context)
+                                                                  .showSnackBar(
+                                                                      SnackBar(
+                                                                content:
+                                                                    SelectableText(
+                                                                        "Reset password sukses"),
+                                                              ));
+                                                            } else {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              ScaffoldMessenger
+                                                                      .of(
+                                                                          context)
+                                                                  .showSnackBar(
+                                                                      SnackBar(
+                                                                content:
+                                                                    SelectableText(
+                                                                        "Reset password gagal"),
+                                                              ));
+                                                            }
+                                                          },
+                                                          child: Text('Kirim'),
+                                                          style: ElevatedButton
+                                                              .styleFrom(
+                                                            backgroundColor:
+                                                                primaryColor,
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                    vertical:
+                                                                        15),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                            content: SelectableText(
+                                                "Username tidak ditemukan."),
+                                          ));
+                                        }
+                                      },
+                                      child: Text('Kirim'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: primaryColor,
+                                        padding:
+                                            EdgeInsets.symmetric(vertical: 15),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Text("Lupa Password?"),
+                    style: TextButton.styleFrom(
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
                 Row(
                   children: <Widget>[
                     Expanded(child: Divider()),
@@ -195,6 +399,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
+          SizedBox(height: 20),
         ],
       ),
     );

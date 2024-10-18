@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:redbus_project/model/ticket/ticket.dart';
 import 'package:redbus_project/services/http_request.dart';
 import 'package:redbus_project/utils/constant.dart';
@@ -27,13 +28,15 @@ class ticketService {
       int price,
       List<int> selectedSeat,
       String departureRoute,
-      String selectedDestination) async {
+      String selectedDestination,
+      List<String> seatName) async {
     final response = await HttpRequest(context).post(
         url: Constant.booking,
         useToken: true,
         body: jsonEncode({
           "id_ticket": ticketId,
           "id_user": userId,
+          "name": seatName,
           "price": price,
           "seat": selectedSeat,
           "route": [departureRoute, selectedDestination]
@@ -47,6 +50,39 @@ class ticketService {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: SelectableText("Booking Tiket Gagal."),
+      ));
+      return false;
+    }
+  }
+
+  Future<dynamic> getUniquePrice(BuildContext context, int price) async {
+    final response = await HttpRequest(context).post(
+        url: Constant.uniquePrice,
+        useToken: true,
+        body: jsonEncode({"price": price}));
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.body;
+    } else {
+      return response.body;
+    }
+  }
+
+  Future<bool> confirmationPayment(
+      BuildContext context, int price, String createdAt) async {
+    final response = await HttpRequest(context).post(
+        url: Constant.paymentConfirmation,
+        useToken: true,
+        body: jsonEncode(
+            {"price": price, "created_at": createdAt, "is_paid": 1}));
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: SelectableText("Pembayaran Sukses, menunggu konfirmasi."),
+      ));
+      return true;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: SelectableText("Pembayaran Gagal."),
       ));
       return false;
     }

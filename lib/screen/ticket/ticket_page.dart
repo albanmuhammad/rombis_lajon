@@ -217,6 +217,8 @@ class _TicketPageState extends State<TicketPage> {
 
   // Bus details (name, availability, price)
   Widget _buildBusDetails(Ticket ticket) {
+    print('ini ticket bus seat ${ticket.bus.seat}');
+    print('ini filled seat ${ticket.filledSeat.length}');
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(

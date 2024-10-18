@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart'; // Import for currency formatting
 import 'package:redbus_project/model/bus/bus.dart';
+import 'package:redbus_project/screen/ticket/payment_page.dart';
 import 'package:redbus_project/services/auth_service.dart';
 import 'package:redbus_project/services/bus_service.dart';
 import 'package:redbus_project/services/ticket_service.dart';
@@ -27,6 +28,9 @@ class _BookingPageState extends State<BookingPage> {
   String? userIdAccount;
   String? selectedDestination;
   String? selectedDestinationTime;
+  List<String> seatName = [];
+  List<TextEditingController> seatNameControllers = [];
+  String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
   void initState() {
@@ -110,13 +114,24 @@ class _BookingPageState extends State<BookingPage> {
                   : () {
                       setState(() {
                         if (isSelected) {
-                          selectedSeats.remove(seatIndex + 1);
+                          int index = selectedSeats.indexOf(seatIndex + 1);
+                          selectedSeats.removeAt(index);
+                          seatNameControllers.removeAt(index);
                         } else {
                           selectedSeats.add(seatIndex + 1);
+                          seatNameControllers.add(TextEditingController());
                         }
-                        calculateTotalPrice(ticket.price[
-                            busDetail!.route.indexOf(selectedDestination!) -
-                                1]);
+
+                        if (selectedSeats.isNotEmpty) {
+                          calculateTotalPrice(ticket.price[
+                              busDetail!.route.indexOf(selectedDestination!) -
+                                  1]);
+                        } else {
+                          // Reset the total price when no seats are selected
+                          totalPrice = 0;
+                        }
+                        seatName =
+                            List.generate(selectedSeats.length, (index) => '');
                       });
                     },
               child: Container(
@@ -181,8 +196,8 @@ class _BookingPageState extends State<BookingPage> {
   // Calculate total price based on selected seats
   void calculateTotalPrice(int pricePerSeat) {
     setState(() {
-      totalPrice = (pricePerSeat * selectedSeats.length) +
-          selectedSeats.reduce((a, b) => a + b);
+      totalPrice = (pricePerSeat * selectedSeats.length);
+      // +selectedSeats.reduce((a, b) => a + b);
     });
   }
 
@@ -212,25 +227,62 @@ class _BookingPageState extends State<BookingPage> {
         return AlertDialog(
           title:
               Text('Konfirmasi', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Berangkat dari:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(departureRoute!),
-                SizedBox(height: 8),
-                Text('Tujuan:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(selectedDestination!),
-                SizedBox(height: 8),
-                Text('Kursi yang dipilih:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(selectedSeats.join(', ')),
-                SizedBox(height: 8),
-                Text('Total Harga:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(formatRupiah(totalPrice)),
-              ],
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Berangkat dari:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(departureRoute!),
+                  SizedBox(height: 8),
+                  Text('Tujuan:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(selectedDestination!),
+                  SizedBox(height: 8),
+                  Text('Kursi yang dipilih:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(selectedSeats.join(', ')),
+                  SizedBox(height: 8),
+                  Text('Total Harga:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(formatRupiah(totalPrice)),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  Text('Masukkan nama penumpang untuk setiap kursi:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  Container(
+                    height: 200, // Adjust the height to fit a scrollable list
+                    width: MediaQuery.of(context).size.width * 0.7,
+                    child: ListView.builder(
+                      itemCount: selectedSeats.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: TextField(
+                            controller: seatNameControllers[index],
+                            onChanged: (value) {
+                              // Update the seatName list with the value for the current seat
+                              setState(() {
+                                seatName[index] = value;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              labelText:
+                                  'Nama Penumpang untuk Kursi ${selectedSeats[index]}',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -241,18 +293,37 @@ class _BookingPageState extends State<BookingPage> {
             TextButton(
               child: Text('Confirm', style: TextStyle(color: Colors.green)),
               onPressed: () async {
-                // Handle the booking action
-                var x = await ticketService().bookingTicket(
+                try {
+                  // Handle the booking action
+                  final bookingResult = await ticketService().bookingTicket(
                     context,
                     userIdAccount!,
                     ticketId!,
                     totalPrice,
                     selectedSeats,
                     departureRoute!,
-                    selectedDestination!);
-                print(x);
-                Navigator.of(context).pop();
-                Navigator.of(context).pop(x);
+                    selectedDestination!,
+                    seatName,
+                  );
+
+                  if (!context.mounted)
+                    return; // Check if context is still valid
+
+                  Navigator.pop(context); // Pop the current screen
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PaymentPage(
+                        price: totalPrice,
+                        date: currentDate,
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  // Handle any errors
+                  print('Error during booking: $e');
+                }
               },
             ),
           ],
@@ -365,6 +436,8 @@ class _BookingPageState extends State<BookingPage> {
                               onChanged: (value) {
                                 setState(() {
                                   selectedDestination = value!;
+                                  selectedSeats = [];
+                                  totalPrice = 0;
                                 });
                               },
                             ),

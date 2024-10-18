@@ -16,6 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
   bool isVisible = true;
+  String? errorMessage;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,23 +68,39 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
                 SizedBox(height: 20),
+                // Declare a variable to store the error message
+
                 TextFormField(
                   obscureText: isVisible,
                   controller: passwordController,
                   decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Masukan Password',
-                      suffixIcon: GestureDetector(
-                        child: Icon(isVisible
-                            ? Icons.visibility_off
-                            : Icons.visibility),
-                        onTap: () {
-                          setState(() {
-                            isVisible = !isVisible;
-                          });
-                        },
-                      )),
+                    border: OutlineInputBorder(),
+                    labelText: 'Masukan Password',
+                    suffixIcon: GestureDetector(
+                      child: Icon(
+                        isVisible ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          isVisible = !isVisible;
+                        });
+                      },
+                    ),
+                    // Display error message if available
+                    errorText: errorMessage,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      // Validate password length
+                      if (value.length < 8) {
+                        errorMessage = 'Password must be at least 8 characters';
+                      } else {
+                        errorMessage = null; // Reset error if valid
+                      }
+                    });
+                  },
                 ),
+
                 SizedBox(height: 20),
                 // OTP Button
                 isLoading
