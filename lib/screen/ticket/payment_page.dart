@@ -23,24 +23,24 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   void initState() {
-    getData();
+    initData();
     super.initState();
   }
 
-  getData() async {
-    price = widget.price ?? 0;
-    DateTime currentDate = DateTime.now();
-    String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
-    date = (widget.date != null && widget.date!.isNotEmpty)
-        ? widget.date!
-        : formattedCurrentDate;
+  initData() async {
     setState(() {
       isLoading = true;
     });
+    price = widget.price!;
+    DateTime currentDate = DateTime.now().toUtc();
+    String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
+    date = (widget.date != null && widget.date!.isNotEmpty)
+        ? widget.date!.split(' ')[0] // This will give you "2024-19-10"
+        : formattedCurrentDate;
 
-    // Simulasi delay untuk loading
-    var x = await ticketService().getUniquePrice(context, price);
-    priceUnique = Utilities.parseInt(x);
+    // // Simulasi delay untuk loading
+    // var x = await ticketService().getUniquePrice(context, price);
+    // priceUnique = Utilities.parseInt(x);
     setState(() {
       isLoading = false;
     });
@@ -81,7 +81,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'Rp ${priceUnique.toString()}',
+                    'Rp ${price.toString()}',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   SizedBox(height: 20),
@@ -112,7 +112,7 @@ class _PaymentPageState extends State<PaymentPage> {
                       onPressed: () async {
                         try {
                           final confirmationResult = await ticketService()
-                              .confirmationPayment(context, priceUnique, date);
+                              .confirmationPayment(context, price, date);
 
                           if (!context.mounted)
                             return; // Check if context is still valid

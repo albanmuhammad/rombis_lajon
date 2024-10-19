@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:redbus_project/model/auth/user.dart';
 import 'package:redbus_project/screen/main_page.dart';
 import 'package:redbus_project/screen/register_page.dart';
@@ -16,6 +17,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController resetPasswordController = TextEditingController();
   bool isVisible = true;
   bool isLoading = false;
   bool isForgotPassword = false;
@@ -252,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                                                       SizedBox(height: 20),
                                                       TextFormField(
                                                         controller:
-                                                            passwordController,
+                                                            resetPasswordController,
                                                         decoration:
                                                             InputDecoration(
                                                           labelText: 'Password',
@@ -267,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                                                           onPressed: () async {
                                                             // Implement your forgot password logic here
                                                             String password =
-                                                                passwordController
+                                                                resetPasswordController
                                                                     .text;
                                                             // Close the modal after processing
                                                             var x = await AuthService()

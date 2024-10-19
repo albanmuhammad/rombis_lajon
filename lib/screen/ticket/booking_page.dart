@@ -6,6 +6,7 @@ import 'package:redbus_project/screen/ticket/payment_page.dart';
 import 'package:redbus_project/services/auth_service.dart';
 import 'package:redbus_project/services/bus_service.dart';
 import 'package:redbus_project/services/ticket_service.dart';
+import 'package:redbus_project/utils/utilities.dart';
 
 class BookingPage extends StatefulWidget {
   final String? busId;
@@ -220,7 +221,7 @@ class _BookingPageState extends State<BookingPage> {
     return '|$formattedDate|\n|$formattedTime|'; // Add a newline character
   }
 
-  void _showConfirmationDialog(BuildContext context) {
+  void _showConfirmationDialog(BuildContext context, int price) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -248,7 +249,7 @@ class _BookingPageState extends State<BookingPage> {
                   SizedBox(height: 8),
                   Text('Total Harga:',
                       style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(formatRupiah(totalPrice)),
+                  Text(formatRupiah(price)),
                   SizedBox(
                     height: 16,
                   ),
@@ -299,7 +300,7 @@ class _BookingPageState extends State<BookingPage> {
                     context,
                     userIdAccount!,
                     ticketId!,
-                    totalPrice,
+                    price,
                     selectedSeats,
                     departureRoute!,
                     selectedDestination!,
@@ -315,7 +316,7 @@ class _BookingPageState extends State<BookingPage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => PaymentPage(
-                        price: totalPrice,
+                        price: price,
                         date: currentDate,
                       ),
                     ),
@@ -498,8 +499,11 @@ class _BookingPageState extends State<BookingPage> {
                       ),
                     ),
                     onPressed: selectedSeats.isNotEmpty
-                        ? () {
-                            _showConfirmationDialog(context);
+                        ? () async {
+                            var x = await ticketService()
+                                .getUniquePrice(context, totalPrice);
+                            _showConfirmationDialog(
+                                context, Utilities.parseInt(x));
                           }
                         : null,
                     child: Text('Book Now', style: TextStyle(fontSize: 18.0)),

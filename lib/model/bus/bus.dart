@@ -58,6 +58,7 @@ class BusDetail {
   String name;
   String description;
   List<String> route;
+  List<String> tikum;
   String type;
   int seat;
   List<TicketInBus> ticket;
@@ -66,6 +67,7 @@ class BusDetail {
     required this.id,
     required this.name,
     required this.description,
+    required this.tikum,
     required this.route,
     required this.type,
     required this.seat,
@@ -79,6 +81,7 @@ class BusDetail {
       name: json['name'],
       description: json['description'],
       route: List<String>.from(json['route']),
+      tikum: List<String>.from(json['tikum']),
       type: json['type'],
       seat: json['seat'],
       ticket: (json['ticket'] as List)
@@ -93,6 +96,7 @@ class BusDetail {
       'id': id,
       'name': name,
       'description': description,
+      'tikum': tikum,
       'route': route,
       'type': type,
       'seat': seat,

@@ -8,8 +8,8 @@ import 'package:redbus_project/utils/constant.dart';
 
 class ticketService {
   Future<ListTicket> getAllTicket(BuildContext context) async {
-    final response =
-        await HttpRequest(context).get(useToken: true, url: Constant.tickets);
+    final response = await HttpRequest(context)
+        .get(useToken: true, url: "${Constant.tickets}?is_available=true");
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final data = ListTicket.fromJson(json.decode(response.body));

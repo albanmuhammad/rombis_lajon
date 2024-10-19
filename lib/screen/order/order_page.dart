@@ -167,7 +167,7 @@ class OnProgressOrderPage extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => PaymentPage(
                         price: order.price,
-                        date: order.ticket.date,
+                        date: order.createdAt,
                       ),
                     ),
                   );
