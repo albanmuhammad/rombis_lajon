@@ -28,10 +28,12 @@ class _BookingPageState extends State<BookingPage> {
   String? departureTime;
   String? userIdAccount;
   String? selectedDestination;
+  List<String> selectedTikum = [];
   String? selectedDestinationTime;
   List<String> seatName = [];
   List<TextEditingController> seatNameControllers = [];
-  String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc());
+  String currentDateText = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
   void initState() {
@@ -56,30 +58,36 @@ class _BookingPageState extends State<BookingPage> {
   Widget buildSeatLayout() {
     if (busDetail == null) return Container();
 
-    // Define the number of columns based on bus type
+    // Define the number of columns and layout pattern based on bus type
     int columns;
     double columnSpacing;
+    List<int> seatPattern;
 
     switch (busDetail!.type) {
       case '1x1':
-        columns = 2; // 2 columns
-        columnSpacing = 16.0; // Spacing between columns
+        columns = 2;
+        columnSpacing = 16.0;
+        seatPattern = [1, 0, 1];
         break;
       case '1x2':
-        columns = 3; // 3 columns
-        columnSpacing = 16.0; // Spacing between columns
+        columns = 3;
+        columnSpacing = 16.0;
+        seatPattern = [1, 0, 1, 1];
         break;
       case '2x2':
-        columns = 4; // 4 columns
-        columnSpacing = 16.0; // Spacing between columns
+        columns = 4;
+        columnSpacing = 16.0;
+        seatPattern = [1, 1, 0, 1, 1];
         break;
       case '2x3':
-        columns = 5; // 5 columns
-        columnSpacing = 16.0; // Spacing between columns
+        columns = 6;
+        columnSpacing = 16.0;
+        seatPattern = [1, 1, 0, 1, 1, 1];
         break;
       default:
         columns = 4;
-        columnSpacing = 16.0; // Default spacing
+        columnSpacing = 16.0;
+        seatPattern = [1, 1, 0, 1, 1];
     }
 
     // Filled seats from the ticket
@@ -87,40 +95,34 @@ class _BookingPageState extends State<BookingPage> {
     var ticket = busDetail!.ticket.firstWhere((t) => t.id == ticketId);
     filledSeats.addAll(ticket.seat);
 
-    // Number of total seats
+    // Total seat count from busDetail
     int totalSeats = busDetail!.seat;
+    int seatNumber = 1;
 
     // Create the seat layout
     List<Widget> seatRows = [];
-    for (int rowIndex = 0;
-        rowIndex < (totalSeats / columns).ceil();
-        rowIndex++) {
+    while (seatNumber <= totalSeats) {
       List<Widget> seatWidgets = [];
-      for (int colIndex = 0; colIndex < columns; colIndex++) {
-        int seatIndex = rowIndex * columns + colIndex;
-        if (seatIndex >= totalSeats) break; // Exit if exceeding total seats
+      for (int colIndex = 0; colIndex < seatPattern.length; colIndex++) {
+        if (seatPattern[colIndex] == 1 && seatNumber <= totalSeats) {
+          bool isFilled = filledSeats.contains(seatNumber);
+          bool isSelected = selectedSeats.contains(seatNumber);
+          int seatCorrespondingNumber = seatNumber;
 
-        bool isFilled = filledSeats.contains(seatIndex + 1);
-        bool isSelected = selectedSeats.contains(seatIndex + 1);
-
-        seatWidgets.add(
-          Container(
-            margin: EdgeInsets.symmetric(
-              horizontal: columnSpacing / 2,
-              vertical: 4,
-            ),
-            child: GestureDetector(
+          seatWidgets.add(
+            GestureDetector(
               onTap: isFilled
                   ? null
                   : () {
                       setState(() {
                         if (isSelected) {
-                          int index = selectedSeats.indexOf(seatIndex + 1);
-                          selectedSeats.removeAt(index);
-                          seatNameControllers.removeAt(index);
+                          selectedSeats.remove(seatCorrespondingNumber);
+                          seatNameControllers.removeLast();
+                          print("Seat $seatCorrespondingNumber deselected");
                         } else {
-                          selectedSeats.add(seatIndex + 1);
+                          selectedSeats.add(seatCorrespondingNumber);
                           seatNameControllers.add(TextEditingController());
+                          print("Seat $seatCorrespondingNumber selected");
                         }
 
                         if (selectedSeats.isNotEmpty) {
@@ -128,27 +130,31 @@ class _BookingPageState extends State<BookingPage> {
                               busDetail!.route.indexOf(selectedDestination!) -
                                   1]);
                         } else {
-                          // Reset the total price when no seats are selected
                           totalPrice = 0;
                         }
+
                         seatName =
+                            List.generate(selectedSeats.length, (index) => '');
+                        selectedTikum =
                             List.generate(selectedSeats.length, (index) => '');
                       });
                     },
               child: Container(
-                width: 40, // Width of each seat container
-                height: 40, // Height of each seat container
+                width: 40,
+                height: 40,
+                margin: EdgeInsets.symmetric(
+                    horizontal: columnSpacing / 2, vertical: 4),
                 decoration: BoxDecoration(
                   color: isFilled
-                      ? Colors.red[400] // Filled seats
+                      ? Colors.red[400]
                       : isSelected
-                          ? Colors.green[300] // Selected seats
-                          : Colors.grey[300], // Available seats
+                          ? Colors.green[300]
+                          : Colors.grey[300],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(
                   child: Text(
-                    '${seatIndex + 1}',
+                    '$seatNumber',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black54,
@@ -157,34 +163,36 @@ class _BookingPageState extends State<BookingPage> {
                 ),
               ),
             ),
-          ),
-        );
+          );
+
+          seatNumber++; // Only increment when an actual seat is added
+        } else {
+          // Add an empty container to represent the gap
+          seatWidgets.add(
+            Container(
+              width: 40,
+              height: 40,
+              margin: EdgeInsets.symmetric(
+                  horizontal: columnSpacing / 2, vertical: 4),
+              color: Colors.transparent,
+            ),
+          );
+        }
       }
 
       if (seatWidgets.isNotEmpty) {
         seatRows.add(
-          Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: seatWidgets,
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: seatWidgets,
           ),
         );
       }
     }
 
-    // Wrap the Column in a Center widget and a Container with padding
     return Center(
       child: Container(
-        // padding: EdgeInsets.symmetric(horizontal: 40),
-        // color: Colors.amber,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,11 +222,11 @@ class _BookingPageState extends State<BookingPage> {
 
     // Format the date and time
     String formattedDate =
-        DateFormat('dd-MM-yyyy').format(dateTime); // e.g., 03-10-2024
+        DateFormat('d-MMMM-yyyy').format(dateTime); // e.g., 03-10-2024
     String formattedTime = DateFormat('HH:mm').format(dateTime); // e.g., 22:25
 
     // Return formatted date and time
-    return '|$formattedDate|\n|$formattedTime|'; // Add a newline character
+    return '$formattedDate\n$formattedTime'; // Add a newline character
   }
 
   void _showConfirmationDialog(BuildContext context, int price) {
@@ -228,62 +236,152 @@ class _BookingPageState extends State<BookingPage> {
         return AlertDialog(
           title:
               Text('Konfirmasi', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: ConstrainedBox(
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.7),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Berangkat dari:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(departureRoute!),
-                  SizedBox(height: 8),
-                  Text('Tujuan:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(selectedDestination!),
-                  SizedBox(height: 8),
-                  Text('Kursi yang dipilih:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(selectedSeats.join(', ')),
-                  SizedBox(height: 8),
-                  Text('Total Harga:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(formatRupiah(price)),
-                  SizedBox(
-                    height: 16,
-                  ),
-                  Text('Masukkan nama penumpang untuk setiap kursi:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
-                  Container(
-                    height: 200, // Adjust the height to fit a scrollable list
-                    width: MediaQuery.of(context).size.width * 0.7,
-                    child: ListView.builder(
-                      itemCount: selectedSeats.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text('Berangkat dari:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(departureRoute!),
+                SizedBox(height: 8),
+
+                Text('Tujuan:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(selectedDestination!),
+                SizedBox(height: 8),
+
+                Text('Kursi yang dipilih:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(selectedSeats.join(', ')),
+                SizedBox(height: 8),
+
+                // Price
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Harga:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    Text(
+                      formatRupiah(totalPrice),
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+
+                // Admin Fee
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Biaya Admin:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    Text(
+                      formatRupiah(int.parse(price
+                          .toString()
+                          .substring(price.toString().length - 3))),
+                    ),
+                  ],
+                ),
+
+                Divider(height: 16),
+
+                // Total Price
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Harga:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      formatRupiah(price),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                Text('Masukkan nama penumpang:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+
+                // Passenger Names
+                ...List.generate(
+                    selectedSeats.length,
+                    (index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: TextField(
                             controller: seatNameControllers[index],
                             onChanged: (value) {
-                              // Update the seatName list with the value for the current seat
                               setState(() {
                                 seatName[index] = value;
                               });
                             },
                             decoration: InputDecoration(
-                              labelText:
-                                  'Nama Penumpang untuk Kursi ${selectedSeats[index]}',
+                              labelText: 'Nama Penumpang ${index + 1}',
                               border: OutlineInputBorder(),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                        )),
+
+                Text('Masukkan Titik Kumpul Setiap Penumpang:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+
+                // Pickup Points
+                ...List.generate(
+                    selectedSeats.length,
+                    (index) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: 'Titik Kumpul Penumpang ${index + 1}',
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16.0, vertical: 10.0),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4.0),
+                                borderSide:
+                                    BorderSide(color: Colors.grey.shade400),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4.0),
+                                borderSide:
+                                    BorderSide(color: Colors.blue, width: 2.0),
+                              ),
+                              filled: true,
+                              fillColor: Colors.transparent,
+                            ),
+                            style:
+                                TextStyle(color: Colors.black, fontSize: 16.0),
+                            icon: Icon(Icons.arrow_drop_down,
+                                color: Colors.grey.shade600),
+                            value: selectedTikum[index].isEmpty
+                                ? null
+                                : selectedTikum[index],
+                            items: busDetail!.tikum.map((tikum) {
+                              return DropdownMenuItem<String>(
+                                value: tikum,
+                                child: Text(tikum),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedTikum[index] = value!;
+                              });
+                            },
+                          ),
+                        )),
+              ],
             ),
           ),
           actions: [
@@ -294,35 +392,42 @@ class _BookingPageState extends State<BookingPage> {
             TextButton(
               child: Text('Confirm', style: TextStyle(color: Colors.green)),
               onPressed: () async {
-                try {
-                  // Handle the booking action
-                  final bookingResult = await ticketService().bookingTicket(
-                    context,
-                    userIdAccount!,
-                    ticketId!,
-                    price,
-                    selectedSeats,
-                    departureRoute!,
-                    selectedDestination!,
-                    seatName,
-                  );
-
-                  if (!context.mounted)
-                    return; // Check if context is still valid
-
-                  Navigator.pop(context); // Pop the current screen
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PaymentPage(
-                        price: price,
-                        date: currentDate,
-                      ),
+                if (seatName.contains('') || selectedTikum.contains('')) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Isi semua nama dan titik kumpul.'),
+                      backgroundColor: Colors.red,
                     ),
                   );
+                  return;
+                }
+                try {
+                  final bookingResult = await ticketService().bookingTicket(
+                      context,
+                      userIdAccount!,
+                      ticketId!,
+                      price,
+                      selectedSeats,
+                      departureRoute!,
+                      selectedDestination!,
+                      seatName,
+                      selectedTikum);
+
+                  if (!context.mounted) return;
+
+                  Navigator.pop(context);
+                  if (bookingResult == true) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PaymentPage(
+                          price: price,
+                          date: currentDate,
+                        ),
+                      ),
+                    );
+                  }
                 } catch (e) {
-                  // Handle any errors
                   print('Error during booking: $e');
                 }
               },
@@ -376,7 +481,7 @@ class _BookingPageState extends State<BookingPage> {
                             ),
                             SizedBox(width: 20),
                             Text(
-                              'Kursi Terisisa: ${busDetail!.seat - busDetail!.ticket.firstWhere((t) => t.id == ticketId).seat.length}',
+                              'Kursi Tersisa: ${busDetail!.seat - busDetail!.ticket.firstWhere((t) => t.id == ticketId).seat.length}',
                               style: TextStyle(fontSize: 16.0),
                             ),
                           ],

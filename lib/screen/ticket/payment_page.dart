@@ -19,6 +19,7 @@ class _PaymentPageState extends State<PaymentPage> {
   bool isLoading = false;
   int price = 0;
   int priceUnique = 0;
+  String dateText = "";
   String date = "";
 
   @override
@@ -33,10 +34,18 @@ class _PaymentPageState extends State<PaymentPage> {
     });
     price = widget.price!;
     DateTime currentDate = DateTime.now().toUtc();
-    String formattedCurrentDate = DateFormat('yyyy-MM-dd').format(currentDate);
-    date = (widget.date != null && widget.date!.isNotEmpty)
-        ? widget.date!.split(' ')[0] // This will give you "2024-19-10"
-        : formattedCurrentDate;
+    String formattedCurrentDate = DateFormat('d-MMMM-yyyy').format(currentDate);
+    // Check if widget.date is not null and not empty
+    if (widget.date != null && widget.date!.isNotEmpty) {
+      // Split the date string and parse it into a DateTime object
+      DateTime parsedDate = DateTime.parse(widget.date!.split(' ')[0]);
+      // Format the parsed date
+      dateText = DateFormat('d-MMMM-yyyy').format(parsedDate);
+      date = widget.date!.split(' ')[0];
+    } else {
+      dateText = formattedCurrentDate;
+      date = DateFormat('yyyy-MM-DD').format(currentDate);
+    }
 
     // // Simulasi delay untuk loading
     // var x = await ticketService().getUniquePrice(context, price);
@@ -46,6 +55,12 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
+  String formatRupiah(int value) {
+    final formatCurrency =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return formatCurrency.format(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +68,7 @@ class _PaymentPageState extends State<PaymentPage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_sharp),
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) => MainPage(
@@ -81,7 +96,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'Rp ${price.toString()}',
+                    formatRupiah(price),
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   SizedBox(height: 20),
@@ -91,7 +106,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    date,
+                    dateText,
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   SizedBox(height: 20),
@@ -103,7 +118,14 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    'Bank: BCA\nNo Rekening: 1234567890\nAtas Nama: Ahmad Lancelot',
+                    'Bank Central Asia',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'No Rekening: 1234567890\nAtas Nama: Ahmad Lancelot',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   SizedBox(height: 20),

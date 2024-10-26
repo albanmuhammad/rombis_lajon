@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:redbus_project/model/bus/bus.dart';
 import 'package:redbus_project/model/ticket/ticket.dart';
 import 'package:redbus_project/screen/ticket/booking_page.dart';
+import 'package:redbus_project/services/bus_service.dart';
 import 'package:redbus_project/services/ticket_service.dart';
 
 class TicketPage extends StatefulWidget {
@@ -20,6 +23,12 @@ class _TicketPageState extends State<TicketPage> {
   String? selectedFrom;
   String? selectedTo;
   String? selectedDate;
+  ListBus? listBus;
+  List<String> selectedBusIds = [];
+  List<Ticket> _originalListTickets = [];
+  String? _activeSortType; // Track the active sort type
+  bool _isAscending = true; // Track the ascending or descending order
+
   RangeValues selectedPriceRange = RangeValues(0, 1000000);
   bool isLoading = false;
 
@@ -35,6 +44,7 @@ class _TicketPageState extends State<TicketPage> {
     selectedFrom = widget.from;
     selectedTo = widget.to;
     selectedDate = widget.date;
+    selectedBusIds.add(widget.busId!);
     selectedPriceRange = RangeValues(0, 1000000);
   }
 
@@ -44,46 +54,43 @@ class _TicketPageState extends State<TicketPage> {
       isLoading = true;
     });
     var x = await ticketService().getAllTicket(context);
+    var dataListBus = await BusService().getAllBus(context);
+
     setState(() {
       listTicket = x;
-
+      listBus = dataListBus;
+      _originalListTickets = List.from(listTicket!.data);
       listTicket!.data = listTicket!.data.where((ticket) {
-        // Check 'from' location
         // Check 'from' location
         final fromIndex = selectedFrom != null && selectedFrom!.isNotEmpty
             ? ticket.bus.route.indexWhere((route) =>
                 route.toLowerCase().contains(selectedFrom!.toLowerCase()))
             : -1;
 
-// Ensure that 'from' is not the last index in the route
         if (fromIndex != -1 && fromIndex == ticket.bus.route.length - 1) {
           return false; // Exclude if 'from' is the last stop
         }
 
-// Check 'to' location
+        // Check 'to' location
         final toIndex = selectedTo != null && selectedTo!.isNotEmpty
             ? ticket.bus.route.indexWhere((route) =>
                 route.toLowerCase().contains(selectedTo!.toLowerCase()))
             : -1;
 
-// Ensure that 'to' is not the first index in the route
         if (toIndex != -1 && toIndex == 0) {
           return false; // Exclude if 'to' is the first stop
         }
 
-        // If 'from' is specified but not found in the route, exclude the ticket
         if (selectedFrom != null &&
             selectedFrom!.isNotEmpty &&
             fromIndex == -1) {
           return false;
         }
 
-        // If 'to' is specified but not found in the route, exclude the ticket
         if (selectedTo != null && selectedTo!.isNotEmpty && toIndex == -1) {
           return false;
         }
 
-        // If both 'from' and 'to' are specified, ensure that 'from' comes before 'to'
         if (selectedFrom != null &&
             selectedFrom!.isNotEmpty &&
             selectedTo != null &&
@@ -107,6 +114,13 @@ class _TicketPageState extends State<TicketPage> {
           return false;
         }
 
+        // Filter by selected buses
+        if (selectedBusIds.isNotEmpty &&
+            selectedBusIds[0] != "" &&
+            !selectedBusIds.contains(ticket.busId)) {
+          return false;
+        }
+
         return true;
       }).toList();
       isLoading = false;
@@ -125,12 +139,14 @@ class _TicketPageState extends State<TicketPage> {
             label: Text('Filters'),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: _showSortModal,
             icon: Icon(Icons.sort),
             label: Text('Urutkan'),
           ),
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              _showBusFilterModal();
+            },
             icon: Icon(Icons.directions_bus),
             label: Text('Bus'),
           ),
@@ -217,6 +233,8 @@ class _TicketPageState extends State<TicketPage> {
 
   // Bus details (name, availability, price)
   Widget _buildBusDetails(Ticket ticket) {
+    final formatCurrency =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp. ', decimalDigits: 0);
     print('ini ticket bus seat ${ticket.bus.seat}');
     print('ini filled seat ${ticket.filledSeat.length}');
     return Padding(
@@ -238,16 +256,12 @@ class _TicketPageState extends State<TicketPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  ' Rp ${ticket.price[0]} - Rp ${ticket.price.last}',
+                  ' ${formatCurrency.format(ticket.price[0])} - ${formatCurrency.format(ticket.price.last)}',
                   style:
                       TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
                 Column(
                   children: [
-                    Text(
-                      'Type:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
                     Chip(
                       label: Text(ticket.bus.type),
                       backgroundColor: Colors.blue.shade100,
@@ -273,7 +287,7 @@ class _TicketPageState extends State<TicketPage> {
               onDeleted: () {
                 setState(() {
                   selectedFrom = null;
-                  getData(); // Refresh the data
+                  _filterTicketsByCriteria();
                 });
               },
             ),
@@ -284,7 +298,22 @@ class _TicketPageState extends State<TicketPage> {
               onDeleted: () {
                 setState(() {
                   selectedTo = null;
-                  getData(); // Refresh the data
+                  _filterTicketsByCriteria();
+                });
+              },
+            ),
+          // Active Sort Indicator
+          if (_activeSortType != null)
+            Chip(
+              label: Text(
+                  'Sort: ${_activeSortType!.contains('price') ? (_isAscending ? 'Harga Termurah' : 'Harga Termahal') : (_activeSortType!.contains('earliest') ? 'Keberangkatan Paling Pagi' : 'Keberangkatan Paling Malam')}'),
+              deleteIcon: Icon(Icons.clear),
+              onDeleted: () {
+                setState(() {
+                  _activeSortType = null; // Clear active sort
+                  _isAscending = true; // Reset sorting order if necessary
+                  // Optionally, you may want to call a method to re-sort your data based on other filters.
+                  _filterTicketsByCriteria(); // Refresh the data after clearing the sort
                 });
               },
             ),
@@ -295,7 +324,7 @@ class _TicketPageState extends State<TicketPage> {
               onDeleted: () {
                 setState(() {
                   selectedDate = null;
-                  getData(); // Refresh the data
+                  _filterTicketsByCriteria();
                 });
               },
             ),
@@ -307,10 +336,41 @@ class _TicketPageState extends State<TicketPage> {
               onDeleted: () {
                 setState(() {
                   selectedPriceRange = RangeValues(0, 1000000);
-                  getData(); // Refresh the data
+                  _filterTicketsByCriteria();
                 });
               },
             ),
+          // Add a chip for each selected bus
+          ...selectedBusIds.where((busId) => busId.isNotEmpty).map((busId) {
+            // Ensure listBus is not null and find the bus name safely
+            final bus = listBus!.data.firstWhere(
+              (bus) => bus.id == busId,
+              orElse: () => Bus(
+                  id: '',
+                  name: '',
+                  description: '',
+                  route: [],
+                  seat: 0,
+                  type: ''),
+            );
+
+            // If the bus was found, create the Chip, otherwise skip it
+            if (bus != null) {
+              return Chip(
+                label: Text('Bus: ${bus.name}'),
+                deleteIcon: Icon(Icons.clear),
+                onDeleted: () {
+                  setState(() {
+                    selectedBusIds.remove(busId);
+                    _filterTicketsByCriteria(); // Refresh the data
+                  });
+                },
+              );
+            } else {
+              return SizedBox
+                  .shrink(); // Return an empty widget if no bus is found
+            }
+          }).toList(),
         ],
       ),
     );
@@ -416,7 +476,7 @@ class _TicketPageState extends State<TicketPage> {
                           selectedDate = tempDate;
                           selectedPriceRange = tempPriceRange;
                         });
-                        getData(); // Update the ticket list with new filters
+                        _filterTicketsByCriteria(); // Update the ticket list with new filters
                         Navigator.pop(context); // Close the modal
                       },
                       child: Text('Apply Filters'),
@@ -431,45 +491,305 @@ class _TicketPageState extends State<TicketPage> {
     );
   }
 
+  void _sortTicketsByPrice({required bool ascending}) {
+    setState(() {
+      listTicket!.data.sort((a, b) {
+        // Get the minimum price from the price list
+        final aMinPrice = a.price.first;
+        final bMinPrice = b.price.first;
+
+        return ascending
+            ? aMinPrice.compareTo(bMinPrice)
+            : bMinPrice.compareTo(aMinPrice);
+      });
+    });
+  }
+
+  void _sortTicketsByDepartureTime({required bool earliest}) {
+    setState(() {
+      listTicket!.data.sort((a, b) {
+        // Parse the departure time from the first element in the time list
+        final aDepartureTime = DateTime.parse(a.time.first);
+        final bDepartureTime = DateTime.parse(b.time.first);
+
+        return earliest
+            ? aDepartureTime.compareTo(bDepartureTime)
+            : bDepartureTime.compareTo(aDepartureTime);
+      });
+    });
+  }
+
+  void _filterTicketsByCriteria() {
+    setState(() {
+      // Filter the listTicket based on the current filters
+      listTicket!.data = _originalListTickets.where((ticket) {
+        // Check 'from' location
+        final fromIndex = selectedFrom != null && selectedFrom!.isNotEmpty
+            ? ticket.bus.route.indexWhere((route) =>
+                route.toLowerCase().contains(selectedFrom!.toLowerCase()))
+            : -1;
+
+        if (fromIndex != -1 && fromIndex == ticket.bus.route.length - 1) {
+          return false; // Exclude if 'from' is the last stop
+        }
+
+        // Check 'to' location
+        final toIndex = selectedTo != null && selectedTo!.isNotEmpty
+            ? ticket.bus.route.indexWhere((route) =>
+                route.toLowerCase().contains(selectedTo!.toLowerCase()))
+            : -1;
+
+        if (toIndex != -1 && toIndex == 0) {
+          return false; // Exclude if 'to' is the first stop
+        }
+
+        if (selectedFrom != null &&
+            selectedFrom!.isNotEmpty &&
+            fromIndex == -1) {
+          return false;
+        }
+
+        if (selectedTo != null && selectedTo!.isNotEmpty && toIndex == -1) {
+          return false;
+        }
+
+        if (selectedFrom != null &&
+            selectedFrom!.isNotEmpty &&
+            selectedTo != null &&
+            selectedTo!.isNotEmpty &&
+            (fromIndex == -1 || toIndex == -1 || fromIndex >= toIndex)) {
+          return false;
+        }
+
+        // Filter by date
+        if (selectedDate != null &&
+            selectedDate!.isNotEmpty &&
+            ticket.date != selectedDate) {
+          return false;
+        }
+
+        // Filter by price range
+        final minPrice = ticket.price.first;
+        final maxPrice = ticket.price.last;
+        if (minPrice < selectedPriceRange.start ||
+            maxPrice > selectedPriceRange.end) {
+          return false;
+        }
+
+        // Filter by selected buses
+        if (selectedBusIds.isNotEmpty &&
+            selectedBusIds[0] != "" &&
+            !selectedBusIds.contains(ticket.busId)) {
+          return false;
+        }
+
+        return true;
+      }).toList();
+    });
+  }
+
+  void _showSortModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Sort By',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              // Price Sorting Options
+              ListTile(
+                title: Text('Harga Termurah'),
+                onTap: () {
+                  _sortTicketsByPrice(ascending: true);
+                  setState(() {
+                    _activeSortType = 'price_asc'; // Set active sort type
+                    _isAscending = true; // Set sorting order
+                  });
+
+                  Navigator.pop(context); // Close the modal
+                },
+                // enabled: _activeSortType !=
+                //     'price_desc', // Disable if conflicting sort is active
+              ),
+              ListTile(
+                title: Text('Harga Termahal'),
+                onTap: () {
+                  _sortTicketsByPrice(ascending: false);
+                  setState(() {
+                    _activeSortType = 'price_desc'; // Set active sort type
+                    _isAscending = false; // Set sorting order
+                  });
+
+                  Navigator.pop(context); // Close the modal
+                },
+                // enabled: _activeSortType !=
+                //     'price_asc', // Disable if conflicting sort is active
+              ),
+              // Departure Time Sorting Options
+              ListTile(
+                title: Text('Keberangkatan Paling Pagi'),
+                onTap: () {
+                  if (_activeSortType != 'departure_earliest') {
+                    _sortTicketsByDepartureTime(earliest: true);
+                    setState(() {
+                      _activeSortType =
+                          'departure_earliest'; // Set active sort type
+                    });
+                  }
+                  Navigator.pop(context); // Close the modal
+                },
+                enabled: _activeSortType !=
+                    'departure_latest', // Disable if conflicting sort is active
+              ),
+              ListTile(
+                title: Text('Keberangkatan Paling Malam'),
+                onTap: () {
+                  if (_activeSortType != 'departure_latest') {
+                    _sortTicketsByDepartureTime(earliest: false);
+                    setState(() {
+                      _activeSortType =
+                          'departure_latest'; // Set active sort type
+                    });
+                  }
+                  Navigator.pop(context); // Close the modal
+                },
+                enabled: _activeSortType !=
+                    'departure_earliest', // Disable if conflicting sort is active
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBusFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Pilih Bus',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: ListView(
+                      children: listBus!.data.map((bus) {
+                        return CheckboxListTile(
+                          title: Text(bus.name),
+                          subtitle: Text(bus.description),
+                          value: selectedBusIds.contains(bus.id),
+                          onChanged: (bool? selected) {
+                            setState(() {
+                              if (selectedBusIds.isNotEmpty &&
+                                  selectedBusIds[0] == "") {
+                                selectedBusIds.removeAt(0);
+                              }
+                              if (selected == true) {
+                                selectedBusIds.add(bus.id);
+                              } else {
+                                selectedBusIds.remove(bus.id);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      _filterTicketsByCriteria();
+                      Navigator.pop(context); // Close the modal
+                      // _filterTicketsByBus();
+                    },
+                    child: Text('Apply Filter'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // backgroundColor: Colors.white,
         title: const Text('Daftar Tiket'),
-        automaticallyImplyLeading:
-            false, // Optional: if you want to remove the back button
+        automaticallyImplyLeading: false,
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height * 0.91,
-        child: Column(
-          children: [
-            _buildFilters(),
-            _buildActiveFilters(),
-            Expanded(
-              child: isLoading
-                  ? Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : listTicket == null || listTicket!.data.isEmpty
-                      ? Center(
-                          child: Text('No Ticket Found'),
-                        )
-                      : Container(
-                          child: ListView.builder(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            itemCount: listTicket!.data.length,
-                            physics: BouncingScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return _buildBusCard(
-                                  context, listTicket!.data[index]);
-                            },
-                          ),
-                        ),
+      body: isLoading
+          ? Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          : Container(
+              height: MediaQuery.of(context).size.height * 0.91,
+              child: Column(
+                children: [
+                  _buildFilters(),
+                  _buildActiveFilters(),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        await getData(); // Call your data retrieval method
+                      },
+                      child: isLoading
+                          ? ListView(
+                              // Wrap in ListView to enable refresh
+                              physics: AlwaysScrollableScrollPhysics(),
+                              children: [
+                                Container(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.7,
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : listTicket == null || listTicket!.data.isEmpty
+                              ? ListView(
+                                  // Wrap in ListView to enable refresh
+                                  physics: AlwaysScrollableScrollPhysics(),
+                                  children: [
+                                    Container(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.7,
+                                      child: Center(
+                                        child: Text('No Ticket Found'),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : ListView.builder(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  itemCount: listTicket!.data.length,
+                                  physics:
+                                      AlwaysScrollableScrollPhysics(), // Changed from BouncingScrollPhysics
+                                  itemBuilder: (context, index) {
+                                    return _buildBusCard(
+                                        context, listTicket!.data[index]);
+                                  },
+                                ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

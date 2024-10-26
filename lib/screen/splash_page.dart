@@ -48,7 +48,7 @@ class _SplashPageState extends State<SplashPage> {
       // Navigate to UnregisterPage if is_active is 0
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => IntroductionPage()),
       );
     } else if (x.isActive == true) {
       // Navigate to HomePage if is_active is 1

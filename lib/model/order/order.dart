@@ -21,6 +21,8 @@ class Order {
   int price;
   int seat;
   int isPaid;
+  String tikum;
+  String name;
   List<String> route;
   String createdAt;
   TicketOrder ticket;
@@ -30,6 +32,8 @@ class Order {
     required this.price,
     required this.seat,
     required this.isPaid,
+    required this.tikum,
+    required this.name,
     required this.route,
     required this.createdAt,
     required this.ticket,
@@ -41,7 +45,9 @@ class Order {
       id: json['id'],
       price: json['price'],
       seat: json['seat'],
-      isPaid: json['is_paid'],
+      tikum: json['tikum'],
+      name: json['name'],
+      isPaid: json['isPaid'],
       createdAt: json['created_at'],
       route: List<String>.from(json['route']),
       ticket: TicketOrder.fromJson(json['ticket']),
@@ -53,6 +59,8 @@ class Order {
     return {
       'id': id,
       'price': price,
+      'name': name,
+      'tikum': tikum,
       'seat': seat,
       'created_at': createdAt,
       'route': route,

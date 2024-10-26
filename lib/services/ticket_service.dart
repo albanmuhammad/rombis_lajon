@@ -29,17 +29,19 @@ class ticketService {
       List<int> selectedSeat,
       String departureRoute,
       String selectedDestination,
-      List<String> seatName) async {
+      List<String> seatName,
+      List<String> selectedTikum) async {
     final response = await HttpRequest(context).post(
         url: Constant.booking,
         useToken: true,
         body: jsonEncode({
-          "id_ticket": ticketId,
-          "id_user": userId,
+          "ticketId": ticketId,
+          "userId": userId,
           "name": seatName,
           "price": price,
           "seat": selectedSeat,
-          "route": [departureRoute, selectedDestination]
+          "route": [departureRoute, selectedDestination],
+          "tikum": selectedTikum
         }));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -72,8 +74,8 @@ class ticketService {
     final response = await HttpRequest(context).post(
         url: Constant.paymentConfirmation,
         useToken: true,
-        body: jsonEncode(
-            {"price": price, "created_at": createdAt, "is_paid": 1}));
+        body:
+            jsonEncode({"price": price, "created_at": createdAt, "isPaid": 1}));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

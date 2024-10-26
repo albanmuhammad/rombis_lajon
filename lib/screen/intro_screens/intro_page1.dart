@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:redbus_project/screen/login_page.dart';
+import 'package:redbus_project/screen/register_page.dart';
+import 'package:redbus_project/utils/theme.dart';
 
 class IntroPage1 extends StatelessWidget {
   const IntroPage1({super.key});
@@ -13,9 +16,9 @@ class IntroPage1 extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Padding(
-              padding: EdgeInsets.only(top: 110.0, bottom: 20.0),
+              padding: EdgeInsets.only(top: 90.0, bottom: 20.0),
               child: Text(
-                "Rombil Lajon",
+                "Selamat Datang di \n Rombis Lajon",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24.0,
@@ -27,32 +30,87 @@ class IntroPage1 extends StatelessWidget {
             Expanded(
               child: Center(
                 child: Container(
-                  width: 250,
-                  height: 250,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 5,
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: const Padding(
+                  width: 500,
+                  height: 500,
+                  child: Padding(
                     padding: EdgeInsets.all(20.0),
-                    // child: Image(
-                    //   image: AssetImage(
-                    //       'assets/intro_image1.png'), // Replace with your image path
-                    //   fit: BoxFit.contain,
-                    // ),
+                    child: Image.asset(
+                      'assets/illustration.png', // Path to your local image
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 50.0), // Adjust space at the bottom
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: SizedBox(
+                    width: double
+                        .infinity, // Takes up the full width of the parent
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => LoginPage()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            primaryColor, // Button background color
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                        elevation: 5, // Light shadow to enhance the UI
+                      ),
+                      child: const Text(
+                        "LOGIN",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16), // Space between the two buttons
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: SizedBox(
+                    width: double
+                        .infinity, // Takes up the full width of the parent
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(
+                            builder: (context) => RegisterPage()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.white, // Button background color
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                          // side: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        elevation: 5, // Light shadow to enhance the UI
+                      ),
+                      child: Text(
+                        "REGISTER",
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 70,
+            )
           ],
         ),
       ),

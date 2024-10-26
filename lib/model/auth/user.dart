@@ -15,7 +15,7 @@ class User {
   User.fromJson(Map<String, dynamic> json) {
     id = Utilities.parseString(json['id']);
     role = Utilities.parseInt(json['role']);
-    isActive = Utilities.parseBool(json['is_active']);
+    isActive = Utilities.parseBool(json['isActive']);
     userName = Utilities.parseString(json['username']);
   }
 }

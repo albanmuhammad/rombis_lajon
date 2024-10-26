@@ -8,7 +8,8 @@ import 'package:redbus_project/utils/theme.dart';
 
 class MainPage extends StatefulWidget {
   final int? index;
-  const MainPage({this.index});
+  final String? busId;
+  const MainPage({this.index, this.busId});
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -18,6 +19,7 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     currentIndex = widget.index != null ? widget.index! : 0;
+    selectedBus = widget.busId != null ? widget.busId! : "";
     super.initState();
   }
 
@@ -27,13 +29,16 @@ class _MainPageState extends State<MainPage> {
   String? selectedFrom;
   String? selectedTo;
   String? selectedDate;
+  String? selectedBus;
 
   // Method to update filters from HomePage
-  void updateFilters(String from, String to, String date) {
+  void updateFilters(String from, String to, String date, String busId) {
+    // widget.updateFilters!(from, to, date, busId);
     setState(() {
       selectedFrom = from;
       selectedTo = to;
       selectedDate = date;
+      selectedBus = busId;
       currentIndex = 2; // Navigate to TicketPage
     });
   }
@@ -43,6 +48,7 @@ class _MainPageState extends State<MainPage> {
       selectedFrom = "";
       selectedTo = "";
       selectedDate = "";
+      selectedBus = "";
     });
   }
 
@@ -68,6 +74,7 @@ class _MainPageState extends State<MainPage> {
             from: selectedFrom,
             to: selectedTo,
             date: selectedDate,
+            busId: selectedBus,
           );
         case 3:
           return UserPage();

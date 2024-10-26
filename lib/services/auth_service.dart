@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:redbus_project/model/auth/user.dart';
+import 'package:redbus_project/screen/introduction_page.dart';
 import 'package:redbus_project/screen/login_page.dart';
 import 'package:redbus_project/screen/main_page.dart';
 import 'package:redbus_project/services/http_request.dart';
@@ -47,7 +48,7 @@ class AuthService {
     final Map<String, dynamic> parsedJson = json.decode(responseBody);
 
     // Access the 'id' inside the 'authSession'
-    final String id = parsedJson['authSession']['id'];
+    final String id = parsedJson['authSession'];
 
     print('ID: $id');
     return id;
@@ -58,7 +59,7 @@ class AuthService {
     final Map<String, dynamic> parsedJson = json.decode(responseBody);
 
     // Access the 'id' inside the 'authSession'
-    final String userId = parsedJson['authSession']['userId'];
+    final String userId = parsedJson['user'];
 
     print('ID: $userId');
     return userId;
@@ -101,13 +102,16 @@ class AuthService {
 
       // AuthService().setUser(context, loginResponse.data);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: SelectableText("Register Akun Sukses."),
+        content: SelectableText(
+            "Register Akun Sukses, silahkan tunggu diverifikasi admin"),
       ));
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => LoginPage()));
     } else {
+      final decodedResponse = json.decode(response.body);
+      final message = decodedResponse['message'];
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: SelectableText("Register Akun gagal."),
+        content: SelectableText(message),
       ));
     }
   }
@@ -168,7 +172,7 @@ class AuthService {
         content: SelectableText("Logout Sukses."),
       ));
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => LoginPage()));
+          context, MaterialPageRoute(builder: (context) => IntroductionPage()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: SelectableText("Logout Gagal."),

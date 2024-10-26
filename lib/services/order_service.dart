@@ -16,6 +16,9 @@ class OrderService {
       return data;
     } else {
       // Handle error response, or throw an exception
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: SelectableText("Failed to load user order."),
+      ));
       throw Exception('Failed to load buses: ${response.statusCode}');
     }
   }

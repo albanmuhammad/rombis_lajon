@@ -21,37 +21,29 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: primaryColor,
+        centerTitle: true,
+        title: Text(
+          'Baru bergabung di Rombis Lajon',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         elevation: 0,
       ),
       body: ListView(
         children: [
           // Top promotional section
-          Container(
-            width: double.infinity,
-            color: primaryColor,
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Icon(Icons.discount),
-                // SizedBox(height: 10),
-                Text(
-                  'Baru bergabung di Rombis Lajon',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
 
           // Form section
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
+                SizedBox(height: 24),
                 Text(
                   'Buat Akun Anda',
                   style: TextStyle(
@@ -59,7 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     fontSize: 20,
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 24),
                 TextFormField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -93,7 +85,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     setState(() {
                       // Validate password length
                       if (value.length < 8) {
-                        errorMessage = 'Password must be at least 8 characters';
+                        errorMessage = 'Password minimal harus 8 karakter';
                       } else {
                         errorMessage = null; // Reset error if valid
                       }

@@ -40,6 +40,7 @@ class _OrderPageState extends State<OrderPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Pesanan Saya'),
         bottom: TabBar(
           controller: _tabController,
@@ -129,8 +130,14 @@ class _OrderPageState extends State<OrderPage>
                   refreshOrders: getData,
                 ),
                 // CompletedOrderPage will show orders where isPaid = true
-                ConfirmationWaitOrderPage(listOrder: listOrder),
-                CompletedOrderPage(listOrder: listOrder),
+                ConfirmationWaitOrderPage(
+                  listOrder: listOrder,
+                  refreshOrders: getData,
+                ),
+                CompletedOrderPage(
+                  listOrder: listOrder,
+                  refreshOrders: getData,
+                ),
               ],
             ),
     );
@@ -152,80 +159,99 @@ class OnProgressOrderPage extends StatelessWidget {
     var onProgressOrders =
         listOrder?.orders.where((order) => order.isPaid == 0).toList() ?? [];
 
-    return onProgressOrders.isEmpty
-        ? const Center(child: Text('No on progress orders'))
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: onProgressOrders.length,
-            itemBuilder: (context, index) {
-              final order = onProgressOrders[index];
-              return GestureDetector(
-                child: OrderCard(order: order),
-                onTap: () async {
-                  var x = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PaymentPage(
-                        price: order.price,
-                        date: order.createdAt,
+    return RefreshIndicator(
+      onRefresh: () async {
+        refreshOrders();
+      },
+      child: onProgressOrders.isEmpty
+          ? const Center(child: Text('No on progress orders'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: onProgressOrders.length,
+              itemBuilder: (context, index) {
+                final order = onProgressOrders[index];
+                return GestureDetector(
+                  child: OrderCard(order: order),
+                  onTap: () async {
+                    var x = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PaymentPage(
+                          price: order.price,
+                          date: order.createdAt,
+                        ),
                       ),
-                    ),
-                  );
-                  if (x == true) {
-                    refreshOrders(); // Call the parent's getData() method
-                  }
-                },
-              );
-            },
-          );
+                    );
+                    if (x == true) {
+                      refreshOrders(); // Call the parent's getData() method
+                    }
+                  },
+                );
+              },
+            ),
+    );
   }
 }
 
 // Page for completed orders (isPaid = true)
 class ConfirmationWaitOrderPage extends StatelessWidget {
   final ListOrder? listOrder;
+  final VoidCallback refreshOrders;
 
-  const ConfirmationWaitOrderPage({super.key, required this.listOrder});
+  const ConfirmationWaitOrderPage(
+      {super.key, required this.listOrder, required this.refreshOrders});
 
   @override
   Widget build(BuildContext context) {
     var completedOrders =
         listOrder?.orders.where((order) => order.isPaid == 1).toList() ?? [];
 
-    return completedOrders.isEmpty
-        ? const Center(child: Text('No waiting for confirmation orders'))
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: completedOrders.length,
-            itemBuilder: (context, index) {
-              final order = completedOrders[index];
-              return OrderCard(order: order);
-            },
-          );
+    return RefreshIndicator(
+      onRefresh: () async {
+        refreshOrders();
+      },
+      child: completedOrders.isEmpty
+          ? const Center(child: Text('No waiting for confirmation orders'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: completedOrders.length,
+              itemBuilder: (context, index) {
+                final order = completedOrders[index];
+                return OrderCard(order: order);
+              },
+            ),
+    );
   }
 }
 
 // Page for completed orders (isPaid = true)
 class CompletedOrderPage extends StatelessWidget {
   final ListOrder? listOrder;
+  final VoidCallback refreshOrders;
 
-  const CompletedOrderPage({super.key, required this.listOrder});
+  const CompletedOrderPage(
+      {super.key, required this.listOrder, required this.refreshOrders});
 
   @override
   Widget build(BuildContext context) {
     var completedOrders =
         listOrder?.orders.where((order) => order.isPaid == 2).toList() ?? [];
 
-    return completedOrders.isEmpty
-        ? const Center(child: Text('No completed orders'))
-        : ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: completedOrders.length,
-            itemBuilder: (context, index) {
-              final order = completedOrders[index];
-              return OrderCard(order: order);
-            },
-          );
+    return RefreshIndicator(
+      onRefresh: () async {
+        refreshOrders();
+      },
+      child: completedOrders.isEmpty
+          ? const Center(child: Text('No completed orders'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: completedOrders.length,
+              itemBuilder: (context, index) {
+                final order = completedOrders[index];
+                return OrderCard(order: order);
+              },
+            ),
+    );
   }
 }
 
@@ -268,6 +294,14 @@ class OrderCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Harga: Rp${order.price}, Kursi: ${order.seat}',
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            Text(
+              'Nama: ${order.name}',
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            Text(
+              'Tikum: ${order.tikum}',
               style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
             const SizedBox(height: 8),

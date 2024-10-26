@@ -11,7 +11,10 @@ class UnregisterPage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: primaryColor,
-        title: Text('Akun Belum Terverifikasi'),
+        title: Text(
+          'Akun Belum Terverifikasi',
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
         elevation: 0,
       ),

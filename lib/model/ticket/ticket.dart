@@ -21,7 +21,7 @@ class Ticket {
 
   Ticket.fromJson(Map<String, dynamic> json) {
     id = json["id"];
-    busId = json["id_bus"];
+    busId = json["busId"];
     time = List<String>.from(json['time']);
     date = json["date"];
     price = List<int>.from(json['price']);
@@ -32,7 +32,7 @@ class Ticket {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'id_bus': busId,
+      'busId': busId,
       'time': time,
       'date': date,
       'price': price,

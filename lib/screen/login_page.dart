@@ -26,43 +26,37 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text(
+          'Selamat datang di Rombis Lajon',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: primaryColor,
         elevation: 0,
       ),
       body: ListView(
         children: [
-          // Top promotional section
-          Container(
-            width: double.infinity,
-            color: primaryColor,
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Text(
-                  'Baru bergabung di Rombis Lajon',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Form section
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                SizedBox(height: 24),
                 Text(
-                  'Verifikasi data Anda',
+                  'Masukan Data Anda',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 24),
                 TextFormField(
                   controller: emailController,
                   decoration: InputDecoration(
@@ -280,27 +274,9 @@ class _LoginPageState extends State<LoginPage> {
                                                             if (x == true) {
                                                               Navigator.pop(
                                                                   context);
-                                                              ScaffoldMessenger
-                                                                      .of(
-                                                                          context)
-                                                                  .showSnackBar(
-                                                                      SnackBar(
-                                                                content:
-                                                                    SelectableText(
-                                                                        "Reset password sukses"),
-                                                              ));
                                                             } else {
                                                               Navigator.pop(
                                                                   context);
-                                                              ScaffoldMessenger
-                                                                      .of(
-                                                                          context)
-                                                                  .showSnackBar(
-                                                                      SnackBar(
-                                                                content:
-                                                                    SelectableText(
-                                                                        "Reset password gagal"),
-                                                              ));
                                                             }
                                                           },
                                                           child: Text('Kirim'),

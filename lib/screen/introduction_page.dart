@@ -31,7 +31,7 @@ class _IntroductionPageState extends State<IntroductionPage> {
         children: [
           PageView(
             controller: _pageController,
-            children: const [IntroPage1(), IntroPage2(), IntroPage3()],
+            children: const [IntroPage1()],
           ),
           Positioned(
             bottom: 30,
@@ -40,85 +40,85 @@ class _IntroductionPageState extends State<IntroductionPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SmoothPageIndicator(
-                  controller: _pageController,
-                  count: 3,
-                  effect: ExpandingDotsEffect(
-                    activeDotColor: secondaryColor3,
-                    dotColor: Colors.red[100]!,
-                    dotHeight: 8,
-                    dotWidth: 8,
-                  ),
-                ),
+                // SmoothPageIndicator(
+                //   controller: _pageController,
+                //   count: 3,
+                //   effect: ExpandingDotsEffect(
+                //     activeDotColor: secondaryColor3,
+                //     dotColor: Colors.red[100]!,
+                //     dotHeight: 8,
+                //     dotWidth: 8,
+                //   ),
+                // ),
                 const SizedBox(height: 20),
-                Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: SizedBox(
-                        width: double
-                            .infinity, // Takes up the full width of the parent
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                    builder: (context) => LoginPage()));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                primaryColor, // Button background color
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                            ),
-                            elevation: 5, // Light shadow to enhance the UI
-                          ),
-                          child: const Text(
-                            "LOGIN",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16), // Space between the two buttons
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: SizedBox(
-                        width: double
-                            .infinity, // Takes up the full width of the parent
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                    builder: (context) => RegisterPage()));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.white, // Button background color
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                              side: BorderSide(color: primaryColor, width: 2),
-                            ),
-                            elevation: 5, // Light shadow to enhance the UI
-                          ),
-                          child: Text(
-                            "REGISTER",
-                            style: TextStyle(
-                              color: primaryColor,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // Column(
+                //   children: [
+                //     Container(
+                //       padding: const EdgeInsets.symmetric(horizontal: 32),
+                //       child: SizedBox(
+                //         width: double
+                //             .infinity, // Takes up the full width of the parent
+                //         child: ElevatedButton(
+                //           onPressed: () {
+                //             Navigator.of(context).pushReplacement(
+                //                 MaterialPageRoute(
+                //                     builder: (context) => LoginPage()));
+                //           },
+                //           style: ElevatedButton.styleFrom(
+                //             backgroundColor:
+                //                 primaryColor, // Button background color
+                //             padding: const EdgeInsets.symmetric(vertical: 15),
+                //             shape: RoundedRectangleBorder(
+                //               borderRadius: BorderRadius.circular(30.0),
+                //             ),
+                //             elevation: 5, // Light shadow to enhance the UI
+                //           ),
+                //           child: const Text(
+                //             "LOGIN",
+                //             style: TextStyle(
+                //               color: Colors.white,
+                //               fontSize: 16,
+                //               fontWeight: FontWeight.w600,
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //     const SizedBox(height: 16), // Space between the two buttons
+                //     Container(
+                //       padding: const EdgeInsets.symmetric(horizontal: 32),
+                //       child: SizedBox(
+                //         width: double
+                //             .infinity, // Takes up the full width of the parent
+                //         child: ElevatedButton(
+                //           onPressed: () {
+                //             Navigator.of(context).pushReplacement(
+                //                 MaterialPageRoute(
+                //                     builder: (context) => RegisterPage()));
+                //           },
+                //           style: ElevatedButton.styleFrom(
+                //             backgroundColor:
+                //                 Colors.white, // Button background color
+                //             padding: const EdgeInsets.symmetric(vertical: 15),
+                //             shape: RoundedRectangleBorder(
+                //               borderRadius: BorderRadius.circular(30.0),
+                //               side: BorderSide(color: primaryColor, width: 2),
+                //             ),
+                //             elevation: 5, // Light shadow to enhance the UI
+                //           ),
+                //           child: Text(
+                //             "REGISTER",
+                //             style: TextStyle(
+                //               color: primaryColor,
+                //               fontSize: 16,
+                //               fontWeight: FontWeight.w600,
+                //             ),
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
               ],
             ),
           ),

@@ -10,7 +10,7 @@ import 'package:redbus_project/widgets/promo_card.dart';
 import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
-  final Function(String, String, String) updateFilters;
+  final Function(String, String, String, String) updateFilters;
 
   HomePage({required this.updateFilters});
 
@@ -123,32 +123,6 @@ class _HomePageState extends State<HomePage> {
                       icon: Icon(Icons.calendar_today),
                       onPressed: () => _selectDate(context), // show date picker
                     ),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedDate = DateTime.now();
-                              _dateController.text =
-                                  DateFormat('yyyy-MM-dd').format(selectedDate);
-                            });
-                          },
-                          child: Text('Hari Ini'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedDate =
-                                  DateTime.now().add(Duration(days: 1));
-                              _dateController.text =
-                                  DateFormat('yyyy-MM-dd').format(selectedDate);
-                            });
-                          },
-                          child: Text('Besok'),
-                        ),
-                      ],
-                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -158,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(
                   onPressed: () {
                     widget.updateFilters(_fromController.text,
-                        _toController.text, _dateController.text);
+                        _toController.text, _dateController.text, '');
                   },
                   style: ElevatedButton.styleFrom(
                     // primary: Colors.red,
@@ -216,13 +190,24 @@ class _HomePageState extends State<HomePage> {
                     children: buses != null
                         ? buses!.data
                             .map((bus) {
-                              return PromoCard(
-                                discount:
-                                    '${bus.name}', // Assuming the bus has a discount property
-                                route: bus
-                                    .type, // Assuming the bus has a route property
-                                icon: Icons
-                                    .directions_bus, // Adjust this if needed
+                              return Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    widget.updateFilters(
+                                        _fromController.text,
+                                        _toController.text,
+                                        _dateController.text,
+                                        bus.id);
+                                  },
+                                  child: PromoCard(
+                                    discount:
+                                        '${bus.name}', // Assuming the bus has a discount property
+                                    route: bus
+                                        .type, // Assuming the bus has a route property
+                                    icon: Icons
+                                        .directions_bus, // Adjust this if needed
+                                  ),
+                                ),
                               );
                             })
                             .take(2)
