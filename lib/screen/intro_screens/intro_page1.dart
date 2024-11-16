@@ -64,7 +64,7 @@ class IntroPage1 extends StatelessWidget {
                         elevation: 5, // Light shadow to enhance the UI
                       ),
                       child: const Text(
-                        "LOGIN",
+                        "MASUK",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -96,7 +96,7 @@ class IntroPage1 extends StatelessWidget {
                         elevation: 5, // Light shadow to enhance the UI
                       ),
                       child: Text(
-                        "REGISTER",
+                        "DAFTAR",
                         style: TextStyle(
                           color: primaryColor,
                           fontSize: 16,

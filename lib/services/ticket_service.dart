@@ -27,10 +27,12 @@ class ticketService {
       String ticketId,
       int price,
       List<int> selectedSeat,
+      int jumlahBarang,
       String departureRoute,
       String selectedDestination,
       List<String> seatName,
-      List<String> selectedTikum) async {
+      List<String> selectedTikum,
+      List<String> selectedGender) async {
     final response = await HttpRequest(context).post(
         url: Constant.booking,
         useToken: true,
@@ -38,10 +40,12 @@ class ticketService {
           "ticketId": ticketId,
           "userId": userId,
           "name": seatName,
+          "jumlahBarang": jumlahBarang,
           "price": price,
           "seat": selectedSeat,
           "route": [departureRoute, selectedDestination],
-          "tikum": selectedTikum
+          "tikum": selectedTikum,
+          "gender": selectedGender
         }));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -50,8 +54,10 @@ class ticketService {
       ));
       return true;
     } else {
+      final decodedResponse = json.decode(response.body);
+      String message = decodedResponse['message'];
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: SelectableText("Booking Tiket Gagal."),
+        content: SelectableText("Booking Tiket Gagal. ${message}"),
       ));
       return false;
     }
@@ -85,6 +91,25 @@ class ticketService {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: SelectableText("Pembayaran Gagal."),
+      ));
+      return false;
+    }
+  }
+
+  Future<bool> absenTicket(BuildContext context, String id, bool sampai) async {
+    final response = await HttpRequest(context).post(
+        url: Constant.absen,
+        useToken: true,
+        body: jsonEncode({"id": id, "sampai": sampai}));
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //   content: SelectableText("Pembayaran Sukses, menunggu konfirmasi."),
+      // ));
+      return true;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: SelectableText("Absen Gagal."),
       ));
       return false;
     }

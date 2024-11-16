@@ -4,6 +4,8 @@ class Ticket {
   late String id;
   late String busId;
   late String date;
+  late String tipeIsi;
+  late int filledPacket;
   late List<String> time;
   late List<int> price;
   late List<int> filledSeat;
@@ -13,6 +15,8 @@ class Ticket {
     required this.id,
     required this.busId,
     required this.time,
+    required this.tipeIsi,
+    required this.filledPacket,
     required this.date,
     required this.price,
     required this.filledSeat,
@@ -22,6 +26,8 @@ class Ticket {
   Ticket.fromJson(Map<String, dynamic> json) {
     id = json["id"];
     busId = json["busId"];
+    tipeIsi = json["tipeIsi"];
+    filledPacket = json["filledPacket"];
     time = List<String>.from(json['time']);
     date = json["date"];
     price = List<int>.from(json['price']);
@@ -33,6 +39,8 @@ class Ticket {
     return {
       'id': id,
       'busId': busId,
+      'tipeIsi': tipeIsi,
+      'filledPacket': filledPacket,
       'time': time,
       'date': date,
       'price': price,

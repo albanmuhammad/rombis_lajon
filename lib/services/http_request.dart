@@ -140,11 +140,11 @@ class HttpRequest {
 
   _tokenExpiredHandling() {
     ScaffoldMessenger.of(_context).showSnackBar(SnackBar(
-      content: SelectableText(
-          'Your access has expired, please re-login to your account again.'),
+      content:
+          SelectableText('Akses akun telah habis, mohon login ulang akun anda'),
     ));
     return new http.Response(
-        '{"message": "Your access has expired, please re-login to your account again."}',
+        '{"message": "Akses akun telah habis, mohon login ulang akun anda"}',
         401);
   }
 

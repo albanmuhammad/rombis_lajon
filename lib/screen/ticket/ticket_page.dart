@@ -234,7 +234,7 @@ class _TicketPageState extends State<TicketPage> {
   // Bus details (name, availability, price)
   Widget _buildBusDetails(Ticket ticket) {
     final formatCurrency =
-        NumberFormat.currency(locale: 'id', symbol: 'Rp. ', decimalDigits: 0);
+        NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0);
     print('ini ticket bus seat ${ticket.bus.seat}');
     print('ini filled seat ${ticket.filledSeat.length}');
     return Padding(
@@ -247,10 +247,15 @@ class _TicketPageState extends State<TicketPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             SizedBox(height: 4),
-            Text(
-              '${ticket.bus.seat - ticket.filledSeat.length} dari ${ticket.bus.seat} kursi tersedia',
-              style: TextStyle(color: Colors.grey),
-            ),
+            ticket.tipeIsi == "penumpang"
+                ? Text(
+                    '${ticket.bus.seat - ticket.filledSeat.length} dari ${ticket.bus.seat} kursi tersedia',
+                    style: TextStyle(color: Colors.grey),
+                  )
+                : Text(
+                    '${ticket.bus.storage - ticket.filledPacket} dari ${ticket.bus.storage} Kuota Paket Barang Tersedia',
+                    style: TextStyle(color: Colors.grey),
+                  ),
             SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -260,13 +265,16 @@ class _TicketPageState extends State<TicketPage> {
                   style:
                       TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
-                Column(
-                  children: [
-                    Chip(
-                      label: Text(ticket.bus.type),
-                      backgroundColor: Colors.blue.shade100,
-                    ),
-                  ],
+                Visibility(
+                  visible: ticket.tipeIsi == "penumpang",
+                  child: Column(
+                    children: [
+                      Chip(
+                        label: Text(ticket.bus.type),
+                        backgroundColor: Colors.blue.shade100,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -349,6 +357,7 @@ class _TicketPageState extends State<TicketPage> {
                   id: '',
                   name: '',
                   description: '',
+                  storage: 0,
                   route: [],
                   seat: 0,
                   type: ''),
@@ -723,73 +732,62 @@ class _TicketPageState extends State<TicketPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daftar Tiket'),
-        automaticallyImplyLeading: false,
-      ),
-      body: isLoading
-          ? Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            )
-          : Container(
-              height: MediaQuery.of(context).size.height * 0.91,
-              child: Column(
+    return DefaultTabController(
+      length: 2, // Two tabs: Penumpang and Barang
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Daftar Tiket'),
+          automaticallyImplyLeading: false,
+          bottom: TabBar(
+            tabs: [
+              Tab(text: 'Penumpang'),
+              Tab(text: 'Barang'),
+            ],
+          ),
+        ),
+        body: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : TabBarView(
                 children: [
-                  _buildFilters(),
-                  _buildActiveFilters(),
-                  Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () async {
-                        await getData(); // Call your data retrieval method
-                      },
-                      child: isLoading
-                          ? ListView(
-                              // Wrap in ListView to enable refresh
-                              physics: AlwaysScrollableScrollPhysics(),
-                              children: [
-                                Container(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.7,
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : listTicket == null || listTicket!.data.isEmpty
-                              ? ListView(
-                                  // Wrap in ListView to enable refresh
-                                  physics: AlwaysScrollableScrollPhysics(),
-                                  children: [
-                                    Container(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.7,
-                                      child: Center(
-                                        child: Text('No Ticket Found'),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : ListView.builder(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  itemCount: listTicket!.data.length,
-                                  physics:
-                                      AlwaysScrollableScrollPhysics(), // Changed from BouncingScrollPhysics
-                                  itemBuilder: (context, index) {
-                                    return _buildBusCard(
-                                        context, listTicket!.data[index]);
-                                  },
-                                ),
-                    ),
-                  ),
+                  _buildTicketList('penumpang'),
+                  _buildTicketList('barang'),
                 ],
               ),
-            ),
+      ),
+    );
+  }
+
+  Widget _buildTicketList(String tipeIsi) {
+    // Filter the list based on the tipeIsi value
+    final filteredTickets =
+        listTicket!.data.where((ticket) => ticket.tipeIsi == tipeIsi).toList();
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        await getData(); // Call your data retrieval method
+      },
+      child: ListView(
+        physics: AlwaysScrollableScrollPhysics(),
+        children: [
+          _buildFilters(), // Filters appear at the top of each tab
+          _buildActiveFilters(), // Active filters appear below filters
+          filteredTickets.isEmpty
+              ? Container(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: Center(child: Text('Tidak ada tiket ditemukan')),
+                )
+              : ListView.builder(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  shrinkWrap: true,
+                  physics:
+                      NeverScrollableScrollPhysics(), // Prevent nested scroll issues
+                  itemCount: filteredTickets.length,
+                  itemBuilder: (context, index) {
+                    return _buildBusCard(context, filteredTickets[index]);
+                  },
+                ),
+        ],
+      ),
     );
   }
 }

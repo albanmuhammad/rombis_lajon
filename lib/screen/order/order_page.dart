@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:redbus_project/model/order/order.dart';
 import 'package:redbus_project/screen/ticket/payment_page.dart';
 import 'package:redbus_project/services/auth_service.dart';
 import 'package:redbus_project/services/order_service.dart';
+import 'package:redbus_project/services/ticket_service.dart';
 
 class OrderPage extends StatefulWidget {
-  const OrderPage({super.key});
+  final int initialTabIndex;
+  const OrderPage({Key? key, this.initialTabIndex = 0}) : super(key: key);
 
   @override
   State<OrderPage> createState() => _OrderPageState();
@@ -20,7 +23,8 @@ class _OrderPageState extends State<OrderPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: widget.initialTabIndex);
     getData();
   }
 
@@ -164,14 +168,18 @@ class OnProgressOrderPage extends StatelessWidget {
         refreshOrders();
       },
       child: onProgressOrders.isEmpty
-          ? const Center(child: Text('No on progress orders'))
+          ? const Center(child: Text('Tidak Ada Order yang Belum Dibayar'))
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: onProgressOrders.length,
               itemBuilder: (context, index) {
                 final order = onProgressOrders[index];
                 return GestureDetector(
-                  child: OrderCard(order: order),
+                  child: OrderCard(
+                    order: order,
+                    isPaidDone: false,
+                    refreshOrders: refreshOrders,
+                  ),
                   onTap: () async {
                     var x = await Navigator.push(
                       context,
@@ -211,13 +219,18 @@ class ConfirmationWaitOrderPage extends StatelessWidget {
         refreshOrders();
       },
       child: completedOrders.isEmpty
-          ? const Center(child: Text('No waiting for confirmation orders'))
+          ? const Center(
+              child: Text('Tidak Ada Order yang Sedang Diverifikasi'))
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: completedOrders.length,
               itemBuilder: (context, index) {
                 final order = completedOrders[index];
-                return OrderCard(order: order);
+                return OrderCard(
+                  order: order,
+                  isPaidDone: false,
+                  refreshOrders: refreshOrders,
+                );
               },
             ),
     );
@@ -242,23 +255,52 @@ class CompletedOrderPage extends StatelessWidget {
         refreshOrders();
       },
       child: completedOrders.isEmpty
-          ? const Center(child: Text('No completed orders'))
+          ? const Center(child: Text('Tidak Ada Rrder yang Telah Diverifikasi'))
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: completedOrders.length,
               itemBuilder: (context, index) {
                 final order = completedOrders[index];
-                return OrderCard(order: order);
+                return OrderCard(
+                  order: order,
+                  isPaidDone: true,
+                  refreshOrders: refreshOrders,
+                );
               },
             ),
     );
   }
 }
 
-class OrderCard extends StatelessWidget {
+class OrderCard extends StatefulWidget {
   final Order order;
+  final bool isPaidDone;
+  final VoidCallback refreshOrders;
 
-  const OrderCard({super.key, required this.order});
+  const OrderCard(
+      {Key? key,
+      required this.order,
+      required this.isPaidDone,
+      required this.refreshOrders})
+      : super(key: key);
+
+  @override
+  _OrderCardState createState() => _OrderCardState();
+}
+
+class _OrderCardState extends State<OrderCard> {
+  bool isSwitched = false;
+
+  String formattedDate(String date) {
+    DateTime parsedDate = DateTime.parse(date);
+    return DateFormat('d MMMM yyyy').format(parsedDate);
+  }
+
+  String formatRupiah(int value) {
+    final formatCurrency =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    return formatCurrency.format(value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -271,37 +313,21 @@ class OrderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Bus: ${order.ticket.bus.name}',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on),
-                    Text(
-                      ' ${order.ticket.currentLocation}',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
+            Text(
+              'Bus: ${widget.order.ticket.bus.name}',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Harga: Rp${order.price}, Kursi: ${order.seat}',
+              'Nama: ${widget.order.name}',
               style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
             Text(
-              'Nama: ${order.name}',
+              "${widget.order.seat > 0 ? 'Kursi:' : 'Barang:'} ${widget.order.seat > 0 ? widget.order.seat : widget.order.jumlahBarang}",
               style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
             Text(
-              'Tikum: ${order.tikum}',
+              'Tikum: ${widget.order.tikum}',
               style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
             const SizedBox(height: 8),
@@ -309,17 +335,58 @@ class OrderCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Dari: ${order.route.first} Ke ${order.route.last}',
+                    'Rute: ${widget.order.route.first} Ke ${widget.order.route.last}',
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
             Text(
-              'Date: ${order.ticket.date}',
+              'Tanggal Keberangkatan: ${formattedDate(widget.order.ticket.date)}',
               style: const TextStyle(fontSize: 16),
             ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.location_on),
+                    Text(
+                      ' ${widget.order.ticket.currentLocation}',
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Visibility(
+                  visible: widget.isPaidDone,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            'Absen: ',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Switch(
+                            value: widget.order.sampai,
+                            onChanged: (value) async {
+                              var x = await ticketService()
+                                  .absenTicket(context, widget.order.id, value);
+                              widget.refreshOrders();
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

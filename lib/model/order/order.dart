@@ -23,6 +23,8 @@ class Order {
   int isPaid;
   String tikum;
   String name;
+  int jumlahBarang;
+  bool sampai;
   List<String> route;
   String createdAt;
   TicketOrder ticket;
@@ -33,7 +35,9 @@ class Order {
     required this.seat,
     required this.isPaid,
     required this.tikum,
+    required this.jumlahBarang,
     required this.name,
+    required this.sampai,
     required this.route,
     required this.createdAt,
     required this.ticket,
@@ -46,6 +50,8 @@ class Order {
       price: json['price'],
       seat: json['seat'],
       tikum: json['tikum'],
+      jumlahBarang: json['jumlahBarang'],
+      sampai: json['sampai'],
       name: json['name'],
       isPaid: json['isPaid'],
       createdAt: json['created_at'],
@@ -60,7 +66,9 @@ class Order {
       'id': id,
       'price': price,
       'name': name,
+      'sampai': sampai,
       'tikum': tikum,
+      'jumlahBarang': jumlahBarang,
       'seat': seat,
       'created_at': createdAt,
       'route': route,

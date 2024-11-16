@@ -138,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                             padding: EdgeInsets.symmetric(vertical: 15),
                           ),
                           label: Text(
-                            'LOGIN',
+                            'MASUK',
                             style: TextStyle(color: Colors.white),
                           ),
                           icon: Icon(Icons.login),
@@ -328,41 +328,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                Row(
-                  children: <Widget>[
-                    Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: Text("Atau"),
-                    ),
-                    Expanded(child: Divider()),
-                  ],
-                ),
-                SizedBox(height: 10),
-                // Google Button
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Icons.login, color: Colors.black),
-                    label: Text(
-                      'Lanjut dengan Google',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                    ),
-                  ),
-                ),
               ],
             ),
-          ),
-
-          // Bottom Section
-          Text(
-            'Dengan melakukan pemesanan, saya sudah setuju dengan semua Syarat dan Ketentuan serta Ketentuan Privasi',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
           ),
           SizedBox(height: 20),
           TextButton(

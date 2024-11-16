@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart'; // Import for currency formatting
+import 'package:redbus_project/model/auth/user.dart';
 import 'package:redbus_project/model/bus/bus.dart';
 import 'package:redbus_project/screen/ticket/payment_page.dart';
 import 'package:redbus_project/services/auth_service.dart';
@@ -31,7 +32,11 @@ class _BookingPageState extends State<BookingPage> {
   List<String> selectedTikum = [];
   String? selectedDestinationTime;
   List<String> seatName = [];
+  String? userName;
+  String? userGender;
+  int quantity = 0; // Default quantity; this can be managed in state if needed
   List<TextEditingController> seatNameControllers = [];
+  List<String> passengerGenders = [];
   String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now().toUtc());
   String currentDateText = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
@@ -46,12 +51,16 @@ class _BookingPageState extends State<BookingPage> {
   getData() async {
     var bus = await BusService().getBusDetail(context, busId!);
     var userId = await AuthService().getUserId();
+    var userNameSp = await AuthService().getUserName();
+    var userGenderSp = await AuthService().getUserGender();
     setState(() {
       busDetail = bus;
       userIdAccount = userId;
       selectedDestination = busDetail!
           .route.last; // Set the initial route to the last destination
       departureRoute = busDetail!.route.first;
+      userName = userNameSp;
+      userGender = userGenderSp;
     });
   }
 
@@ -118,9 +127,11 @@ class _BookingPageState extends State<BookingPage> {
                         if (isSelected) {
                           selectedSeats.remove(seatCorrespondingNumber);
                           seatNameControllers.removeLast();
+                          passengerGenders.removeLast();
                           print("Seat $seatCorrespondingNumber deselected");
                         } else {
                           selectedSeats.add(seatCorrespondingNumber);
+                          passengerGenders.add('laki');
                           seatNameControllers.add(TextEditingController());
                           print("Seat $seatCorrespondingNumber selected");
                         }
@@ -202,17 +213,190 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
+  Widget buildInputJumlahBarang() {
+    return Center(
+      child: Container(
+        // height: MediaQuery.of(context).size.height * 0.36,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Jumlah Barang',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Masukkan jumlah barang yang ingin Anda kirim',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.remove_circle_outline),
+                  onPressed: quantity > 1
+                      ? () {
+                          setState(() {
+                            quantity--;
+                            calculateTotalPrice(busDetail!.ticket
+                                    .firstWhere((t) => t.id == ticketId)
+                                    .price[
+                                busDetail!.route.indexOf(selectedDestination!) -
+                                    1]);
+                          });
+                        }
+                      : null,
+                ),
+                Container(
+                  // margin: EdgeInsets.symmetric(horizontal: 16),
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  child: TextField(
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    controller:
+                        TextEditingController(text: quantity.toString()),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        quantity = int.tryParse(value) ?? 1;
+                        if (quantity < 1) {
+                          quantity = 1; // Ensure non-zero value
+                          calculateTotalPrice(busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .price[
+                              busDetail!.route.indexOf(selectedDestination!) -
+                                  1]);
+                        } else if (quantity >
+                            busDetail!.storage -
+                                busDetail!.ticket
+                                    .firstWhere((t) => t.id == ticketId)
+                                    .jumlahBarang) {
+                          quantity = busDetail!.storage -
+                              busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .jumlahBarang; // Ensure non-zero value
+                          calculateTotalPrice(busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .price[
+                              busDetail!.route.indexOf(selectedDestination!) -
+                                  1]);
+                        }
+                      });
+                    },
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.add_circle_outline),
+                  onPressed: quantity <
+                          busDetail!.storage -
+                              busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .jumlahBarang
+                      ? () {
+                          setState(() {
+                            quantity++;
+                            calculateTotalPrice(busDetail!.ticket
+                                    .firstWhere((t) => t.id == ticketId)
+                                    .price[
+                                busDetail!.route.indexOf(selectedDestination!) -
+                                    1]);
+                          });
+                        }
+                      : () {
+                          setState(() {
+                            quantity = busDetail!.storage -
+                                busDetail!.ticket
+                                    .firstWhere((t) => t.id == ticketId)
+                                    .jumlahBarang;
+                            calculateTotalPrice(busDetail!.ticket
+                                    .firstWhere((t) => t.id == ticketId)
+                                    .price[
+                                busDetail!.route.indexOf(selectedDestination!) -
+                                    1]);
+                          });
+                        },
+                ),
+              ],
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Titik Pengumpulan Barang',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Masukkan titik kumpul yang ingin Anda kirim',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 20),
+            Container(
+              // margin: EdgeInsets.symmetric(horizontal: 16),
+              width: MediaQuery.of(context).size.width * 0.6,
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Titik Kumpul Barang',
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4.0),
+                    borderSide: BorderSide(color: Colors.grey.shade400),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4.0),
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                  ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                ),
+                style: TextStyle(color: Colors.black, fontSize: 16.0),
+                icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+                value: busDetail!.tikum[0],
+                items: busDetail!.tikum.map((tikum) {
+                  return DropdownMenuItem<String>(
+                    value: tikum,
+                    child: Text(tikum),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    busDetail!.ticket
+                                .firstWhere((t) => t.id == ticketId)
+                                .tipeIsi ==
+                            'barang'
+                        ? selectedTikum.add('')
+                        : null;
+                    selectedTikum[0] = value!;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // Calculate total price based on selected seats
   void calculateTotalPrice(int pricePerSeat) {
     setState(() {
-      totalPrice = (pricePerSeat * selectedSeats.length);
+      totalPrice =
+          busDetail!.ticket.firstWhere((t) => t.id == ticketId).tipeIsi ==
+                  'barang'
+              ? (pricePerSeat * quantity)
+              : (pricePerSeat * selectedSeats.length);
       // +selectedSeats.reduce((a, b) => a + b);
     });
   }
 
   String formatRupiah(int value) {
     final formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
     return formatCurrency.format(value);
   }
 
@@ -221,8 +405,7 @@ class _BookingPageState extends State<BookingPage> {
     DateTime dateTime = DateTime.parse(time);
 
     // Format the date and time
-    String formattedDate =
-        DateFormat('d-MMMM-yyyy').format(dateTime); // e.g., 03-10-2024
+    String formattedDate = DateFormat('d-MMM-yyyy').format(dateTime);
     String formattedTime = DateFormat('HH:mm').format(dateTime); // e.g., 22:25
 
     // Return formatted date and time
@@ -237,152 +420,297 @@ class _BookingPageState extends State<BookingPage> {
           title:
               Text('Konfirmasi', style: TextStyle(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text('Berangkat dari:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(departureRoute!),
-                SizedBox(height: 8),
+            child: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+              return ListBody(
+                children: [
+                  Text('Berangkat dari:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(departureRoute!),
+                  SizedBox(height: 8),
 
-                Text('Tujuan:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(selectedDestination!),
-                SizedBox(height: 8),
+                  Text('Tujuan:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(selectedDestination!),
+                  SizedBox(height: 8),
+                  Visibility(
+                      visible: busDetail!.ticket
+                              .firstWhere((t) => t.id == ticketId)
+                              .tipeIsi ==
+                          'barang',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Titik Kumpul Barang:',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text(selectedTikum[0]),
+                          SizedBox(height: 8),
+                        ],
+                      )),
+                  Text(
+                      busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .tipeIsi ==
+                              'barang'
+                          ? 'Jumlah Barang: '
+                          : 'Kursi yang dipilih: ',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(busDetail!.ticket
+                              .firstWhere((t) => t.id == ticketId)
+                              .tipeIsi ==
+                          'barang'
+                      ? quantity.toString()
+                      : selectedSeats.join(', ')),
+                  SizedBox(height: 8),
 
-                Text('Kursi yang dipilih:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(selectedSeats.join(', ')),
-                SizedBox(height: 8),
-
-                // Price
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Harga:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                  // Price
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Harga Tiket:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
                       ),
-                    ),
-                    Text(
-                      formatRupiah(totalPrice),
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-
-                // Admin Fee
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Biaya Admin:',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                      Text(
+                        formatRupiah(totalPrice),
+                        style: TextStyle(fontSize: 14),
                       ),
-                    ),
-                    Text(
-                      formatRupiah(int.parse(price
-                          .toString()
-                          .substring(price.toString().length - 3))),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                Divider(height: 16),
-
-                // Total Price
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total Harga:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                  // Admin Fee
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Biaya Layanan:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
                       ),
-                    ),
-                    Text(
-                      formatRupiah(price),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
+                      Text(
+                        formatRupiah(1000),
+                      ),
+                    ],
+                  ),
 
-                Text('Masukkan nama penumpang:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Kode Unik:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      Text(
+                        formatRupiah(int.parse(price
+                            .toString()
+                            .substring(price.toString().length - 3))),
+                      ),
+                    ],
+                  ),
 
-                // Passenger Names
-                ...List.generate(
+                  Divider(height: 16),
+
+                  // Total Price
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Transfer:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        formatRupiah(price + 1000),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+
+                  busDetail!.ticket
+                              .firstWhere((t) => t.id == ticketId)
+                              .tipeIsi ==
+                          'barang'
+                      ? Container()
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.person,
+                                  color: Colors.blue), // Add icon
+                              label: Text('Pesan Sendiri',
+                                  style: TextStyle(color: Colors.blue)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                side: BorderSide(color: Colors.blue),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  seatName[0] = userName!;
+                                  seatNameControllers[0].text = userName!;
+                                  passengerGenders[0] = userGender!;
+                                });
+                              },
+                            ),
+                            Text('Masukkan nama penumpang:',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                  SizedBox(height: 8),
+
+                  ...List.generate(
                     selectedSeats.length,
                     (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: TextField(
-                            controller: seatNameControllers[index],
-                            onChanged: (value) {
-                              setState(() {
-                                seatName[index] = value;
-                              });
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'Nama Penumpang ${index + 1}',
-                              border: OutlineInputBorder(),
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          // Expanded TextField for Passenger Name
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: seatNameControllers[index],
+                              onChanged: (value) {
+                                setState(() {
+                                  seatName[index] = value;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Nama Penumpang ${index + 1}',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
                           ),
-                        )),
 
-                Text('Masukkan Titik Kumpul Setiap Penumpang:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-
-                // Pickup Points
-                ...List.generate(
-                    selectedSeats.length,
-                    (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              labelText: 'Titik Kumpul Penumpang ${index + 1}',
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 10.0),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide:
-                                    BorderSide(color: Colors.grey.shade400),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(4.0),
-                                borderSide:
-                                    BorderSide(color: Colors.blue, width: 2.0),
-                              ),
-                              filled: true,
-                              fillColor: Colors.transparent,
+                          // Gender Radios in Row with individual Radio buttons
+                          Expanded(
+                            flex: 1,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      height: 10,
+                                      child: Radio<String>(
+                                        value: 'laki',
+                                        groupValue: passengerGenders[index],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            passengerGenders[index] = value!;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const Text('L'),
+                                  ],
+                                ),
+                                // Gender 'P' Radio
+                                SizedBox(
+                                  height: 8,
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      height: 10,
+                                      child: Radio<String>(
+                                        value: 'perempuan',
+                                        groupValue: passengerGenders[index],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            passengerGenders[index] = value!;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const Text('P'),
+                                  ],
+                                ),
+                              ],
                             ),
-                            style:
-                                TextStyle(color: Colors.black, fontSize: 16.0),
-                            icon: Icon(Icons.arrow_drop_down,
-                                color: Colors.grey.shade600),
-                            value: selectedTikum[index].isEmpty
-                                ? null
-                                : selectedTikum[index],
-                            items: busDetail!.tikum.map((tikum) {
-                              return DropdownMenuItem<String>(
-                                value: tikum,
-                                child: Text(tikum),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedTikum[index] = value!;
-                              });
-                            },
                           ),
-                        )),
-              ],
-            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  busDetail!.ticket
+                              .firstWhere((t) => t.id == ticketId)
+                              .tipeIsi ==
+                          'barang'
+                      ? Container()
+                      : Text('Masukan Titik Kumpul Setiap Penumpang:',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+
+                  // Pickup Points
+                  ...List.generate(
+                      selectedSeats.length,
+                      (index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: DropdownButtonFormField<String>(
+                              decoration: InputDecoration(
+                                labelText:
+                                    'Titik Kumpul Penumpang ${index + 1}',
+                                contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 10.0),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(4.0),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey.shade400),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(4.0),
+                                  borderSide: BorderSide(
+                                      color: Colors.blue, width: 2.0),
+                                ),
+                                filled: true,
+                                fillColor: Colors.transparent,
+                              ),
+                              style: TextStyle(
+                                  color: Colors.black, fontSize: 16.0),
+                              icon: Icon(Icons.arrow_drop_down,
+                                  color: Colors.grey.shade600),
+                              value: selectedTikum[index].isEmpty
+                                  ? null
+                                  : selectedTikum[index],
+                              items: busDetail!.tikum.map((tikum) {
+                                return DropdownMenuItem<String>(
+                                  value: tikum,
+                                  child: Text(tikum),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedTikum[index] = value!;
+                                });
+                              },
+                            ),
+                          )),
+                ],
+              );
+            }),
           ),
           actions: [
             TextButton(
@@ -406,12 +734,26 @@ class _BookingPageState extends State<BookingPage> {
                       context,
                       userIdAccount!,
                       ticketId!,
-                      price,
-                      selectedSeats,
+                      price + 1000,
+                      busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .tipeIsi ==
+                              'barang'
+                          ? [0]
+                          : selectedSeats,
+                      busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .tipeIsi ==
+                              'barang'
+                          ? quantity
+                          : 0,
                       departureRoute!,
                       selectedDestination!,
-                      seatName,
-                      selectedTikum);
+                      seatName.isNotEmpty ? seatName : [userName!],
+                      selectedTikum.isNotEmpty ? selectedTikum : [""],
+                      passengerGenders.isNotEmpty
+                          ? passengerGenders
+                          : [userGender!]);
 
                   if (!context.mounted) return;
 
@@ -421,11 +763,21 @@ class _BookingPageState extends State<BookingPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => PaymentPage(
-                          price: price,
+                          price: price + 1000,
                           date: currentDate,
                         ),
                       ),
                     );
+                  } else {
+                    setState(() {
+                      price = 0;
+                      totalPrice = 0;
+                      seatName = [];
+                      selectedSeats = [];
+                      selectedTikum = [];
+                      passengerGenders = [];
+                    });
+                    getData();
                   }
                 } catch (e) {
                   print('Error during booking: $e');
@@ -476,12 +828,22 @@ class _BookingPageState extends State<BookingPage> {
                         Row(
                           children: [
                             Text(
-                              'Total Kursi: ${busDetail!.seat}',
+                              busDetail!.ticket
+                                          .firstWhere((t) => t.id == ticketId)
+                                          .tipeIsi ==
+                                      'barang'
+                                  ? 'Total Barang: ${busDetail!.storage}'
+                                  : 'Total Kursi: ${busDetail!.seat}',
                               style: TextStyle(fontSize: 16.0),
                             ),
                             SizedBox(width: 20),
                             Text(
-                              'Kursi Tersisa: ${busDetail!.seat - busDetail!.ticket.firstWhere((t) => t.id == ticketId).seat.length}',
+                              busDetail!.ticket
+                                          .firstWhere((t) => t.id == ticketId)
+                                          .tipeIsi ==
+                                      'barang'
+                                  ? 'Slot Barang Tersisa: ${busDetail!.storage - busDetail!.ticket.firstWhere((t) => t.id == ticketId).jumlahBarang}'
+                                  : 'Kursi Tersisa: ${busDetail!.seat - busDetail!.ticket.firstWhere((t) => t.id == ticketId).seat.length}',
                               style: TextStyle(fontSize: 16.0),
                             ),
                           ],
@@ -544,6 +906,7 @@ class _BookingPageState extends State<BookingPage> {
                                   selectedDestination = value!;
                                   selectedSeats = [];
                                   totalPrice = 0;
+                                  quantity = 0;
                                 });
                               },
                             ),
@@ -589,7 +952,12 @@ class _BookingPageState extends State<BookingPage> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: SingleChildScrollView(
-                      child: buildSeatLayout(),
+                      child: busDetail!.ticket
+                                  .firstWhere((t) => t.id == ticketId)
+                                  .tipeIsi ==
+                              'barang'
+                          ? buildInputJumlahBarang()
+                          : buildSeatLayout(),
                     ),
                   ),
                 ),
@@ -603,15 +971,23 @@ class _BookingPageState extends State<BookingPage> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
-                    onPressed: selectedSeats.isNotEmpty
+                    onPressed: selectedSeats.isNotEmpty || quantity > 0
                         ? () async {
+                            busDetail!.ticket
+                                            .firstWhere((t) => t.id == ticketId)
+                                            .tipeIsi ==
+                                        'barang' &&
+                                    selectedTikum.isEmpty
+                                ? selectedTikum.add(busDetail!.tikum[0])
+                                : null;
                             var x = await ticketService()
                                 .getUniquePrice(context, totalPrice);
                             _showConfirmationDialog(
                                 context, Utilities.parseInt(x));
                           }
                         : null,
-                    child: Text('Book Now', style: TextStyle(fontSize: 18.0)),
+                    child: Text('Pesan Sekarang',
+                        style: TextStyle(fontSize: 18.0)),
                   ),
                 ),
               ],

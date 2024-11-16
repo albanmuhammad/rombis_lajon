@@ -19,15 +19,47 @@ class _UserPageState extends State<UserPage> {
   bool _isEditing = false;
   late User user;
   String userName = "";
+  String gender = "";
+  String userId = "";
+  String phoneNumber = "";
+  String fullName = "";
+  bool isLoading = false;
   TextEditingController emailController = TextEditingController();
   TextEditingController userNameController = TextEditingController();
+  TextEditingController newPasswordController = TextEditingController();
+  bool showPasswordField = false;
+  bool passwordVisible = false;
 
   getData() async {
+    setState(() {
+      isLoading = true;
+    });
     var x = await AuthService().getMe(context);
     user = x;
     setState(() {
+      isLoading = false;
       userName = user.userName;
+      userId = user.id;
       userNameController.text = user.userName;
+      fullName = user.fullName;
+      phoneNumber = user.phoneNumber;
+      gender = user.gender;
+    });
+  }
+
+  Future<void> resetPassword() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    // Make the reset password request here
+    await AuthService()
+        .resetPassword(context, userId, newPasswordController.text);
+
+    setState(() {
+      isLoading = false;
+      showPasswordField = false;
+      newPasswordController.clear();
     });
   }
 
@@ -35,6 +67,7 @@ class _UserPageState extends State<UserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text('Profil Akun'),
         actions: [
@@ -54,56 +87,87 @@ class _UserPageState extends State<UserPage> {
           )
         ],
       ),
-      body: Center(
-        child: Container(
-          padding: EdgeInsets.all(16),
-          // color: Colors.red,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Profile Picture
-              CircleAvatar(
-                radius: 50,
-                child: Icon(
-                  Icons.account_circle_rounded,
-                  size: 60,
-                ),
-                // Replace with your profile picture path
-              ),
-              const SizedBox(height: 16),
-              // Username
-              Text(
-                userName,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 16),
-              // Editable Fields
-              if (_isEditing)
-                Column(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Center(
+              child: Container(
+                padding: EdgeInsets.all(16),
+                // color: Colors.red,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    TextField(
-                      controller: userNameController,
-                      decoration: InputDecoration(labelText: 'Username'),
-                      onChanged: (value) {
-                        // Update username
-                      },
+                    // Profile Picture
+                    CircleAvatar(
+                      radius: 50,
+                      child: Icon(
+                        Icons.account_circle_rounded,
+                        size: 60,
+                      ),
+                      // Replace with your profile picture path
                     ),
+                    const SizedBox(height: 16),
+                    // Username
+                    Text(
+                      userName,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      gender == "laki" ? "Laki-Laki" : "Perempuan",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    Text(
+                      '+${phoneNumber}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    Text(
+                      fullName,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 16),
+                    if (showPasswordField) ...[
+                      TextField(
+                        controller: newPasswordController,
+                        obscureText: !passwordVisible,
+                        decoration: InputDecoration(
+                          labelText: 'New Password',
+                          border: OutlineInputBorder(),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              passwordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                passwordVisible =
+                                    !passwordVisible; // Toggle password visibility
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
                     ElevatedButton(
-                      onPressed: () {
-                        // Save changes
-                        setState(() {
-                          _isEditing = false;
-                        });
+                      onPressed: () async {
+                        if (showPasswordField) {
+                          await resetPassword();
+                        } else {
+                          setState(() {
+                            showPasswordField = true;
+                          });
+                        }
                       },
-                      child: const Text('Save Changes'),
+                      child: Text(showPasswordField
+                          ? 'Save Password'
+                          : 'Reset Password'),
                     ),
                   ],
                 ),
-            ],
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 }

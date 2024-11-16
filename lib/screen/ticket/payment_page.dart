@@ -40,7 +40,7 @@ class _PaymentPageState extends State<PaymentPage> {
       // Split the date string and parse it into a DateTime object
       DateTime parsedDate = DateTime.parse(widget.date!.split(' ')[0]);
       // Format the parsed date
-      dateText = DateFormat('d-MMMM-yyyy').format(parsedDate);
+      dateText = DateFormat('d MMMM yyyy').format(parsedDate);
       date = widget.date!.split(' ')[0];
     } else {
       dateText = formattedCurrentDate;
@@ -55,10 +55,37 @@ class _PaymentPageState extends State<PaymentPage> {
     });
   }
 
-  String formatRupiah(int value) {
-    final formatCurrency =
-        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    return formatCurrency.format(value);
+  Widget formatRupiahWithBold(int value) {
+    final formatCurrency = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp',
+      decimalDigits: 0,
+    );
+    String formattedText = formatCurrency.format(value);
+
+    // Separate the last 3 digits for bold styling
+    String mainText = formattedText.substring(0, formattedText.length - 3);
+    String boldText = formattedText.substring(formattedText.length - 3);
+
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+              text: mainText,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              )),
+          TextSpan(
+              text: boldText,
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  backgroundColor: Colors.orange)),
+        ],
+      ),
+      style: TextStyle(fontSize: 16, color: Colors.black54),
+    );
   }
 
   @override
@@ -95,9 +122,26 @@ class _PaymentPageState extends State<PaymentPage> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
-                  Text(
-                    formatRupiah(price),
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                  formatRupiahWithBold(price),
+                  SizedBox(height: 10),
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                          fontSize: 16, color: Colors.black), // Default style
+                      children: [
+                        TextSpan(
+                            text:
+                                'Pastikan Jumlah Transfer Sudah \nBenar Hingga '),
+                        TextSpan(
+                          text: '3 Digit',
+                          style: TextStyle(
+                            backgroundColor:
+                                Colors.orange, // Background color for "3 Digit"
+                          ),
+                        ),
+                        TextSpan(text: ' Terakhir!'),
+                      ],
+                    ),
                   ),
                   SizedBox(height: 20),
                   Text(
@@ -107,6 +151,11 @@ class _PaymentPageState extends State<PaymentPage> {
                   SizedBox(height: 10),
                   Text(
                     dateText,
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Pastikan Pembayaran Tidak Lebih dari 24 Jam Kedepan',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   SizedBox(height: 20),
@@ -125,7 +174,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     ),
                   ),
                   Text(
-                    'No Rekening: 1234567890\nAtas Nama: Ahmad Lancelot',
+                    'No Rekening: 1220085682\nAtas Nama: R. Bambang Agus',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   SizedBox(height: 20),
@@ -145,6 +194,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                 MaterialPageRoute(
                                     builder: (context) => MainPage(
                                           index: 1,
+                                          tabIndex: 1,
                                         )));
                           }
                         } catch (e) {

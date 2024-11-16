@@ -2,6 +2,7 @@ class Bus {
   late String id;
   late String name;
   late String description;
+  late int storage;
   late List<String> route;
   late String type;
   late int seat;
@@ -10,6 +11,7 @@ class Bus {
       {required this.id,
       required this.name,
       required this.description,
+      required this.storage,
       required this.route,
       required this.seat,
       required this.type});
@@ -19,6 +21,7 @@ class Bus {
     id = json['id'] ?? "";
     name = json['name'];
     description = json['description'];
+    storage = json['storage'];
     route = List<String>.from(json['route']);
     seat = json['seat'];
     type = json['type'];
@@ -30,6 +33,7 @@ class Bus {
       'id': id,
       'name': name,
       'description': description,
+      'storage': storage,
       'route': route,
       'seat': seat,
       'type': type,
@@ -60,6 +64,7 @@ class BusDetail {
   List<String> route;
   List<String> tikum;
   String type;
+  int storage;
   int seat;
   List<TicketInBus> ticket;
 
@@ -69,6 +74,7 @@ class BusDetail {
     required this.description,
     required this.tikum,
     required this.route,
+    required this.storage,
     required this.type,
     required this.seat,
     required this.ticket,
@@ -83,6 +89,7 @@ class BusDetail {
       route: List<String>.from(json['route']),
       tikum: List<String>.from(json['tikum']),
       type: json['type'],
+      storage: json['storage'],
       seat: json['seat'],
       ticket: (json['ticket'] as List)
           .map((item) => TicketInBus.fromJson(item))
@@ -109,12 +116,16 @@ class TicketInBus {
   String id;
   List<int> price;
   String date;
+  String tipeIsi;
+  int jumlahBarang;
   List<String> time;
   List<int> seat;
 
   TicketInBus({
     required this.id,
     required this.price,
+    required this.tipeIsi,
+    required this.jumlahBarang,
     required this.date,
     required this.time,
     required this.seat,
@@ -125,6 +136,8 @@ class TicketInBus {
     return TicketInBus(
       id: json['id'],
       price: List<int>.from(json['price']),
+      tipeIsi: json['tipeIsi'],
+      jumlahBarang: json['jumlahBarang'],
       date: json['date'],
       time: List<String>.from(json['time']),
       seat: List<int>.from(json['seat']),
@@ -136,6 +149,8 @@ class TicketInBus {
     return {
       'id': id,
       'price': price,
+      'tipeIsi': tipeIsi,
+      'jumlahBarang': jumlahBarang,
       'date': date,
       'time': time,
       'seat': seat,

@@ -61,6 +61,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     Widget SearchSchedule() {
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Bus & Shuttle Section
           Container(
@@ -75,7 +76,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 24),
+                SizedBox(height: 8),
                 Text(
                   "Tiket Bus & Shuttle",
                   style: TextStyle(
@@ -83,14 +84,7 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  "Selalu lebih murah dari harga loket",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 TextField(
                   controller: _fromController,
                   decoration: InputDecoration(
@@ -164,8 +158,9 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 10),
+            // SizedBox(height: 10),
             Text(
               "Daftar Bus",
               style: TextStyle(
@@ -175,14 +170,14 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Text(
-              "Temukan Bus Langganan anda",
+              "Temukan Bus",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 16),
             isLoading
                 ? CircularProgressIndicator() // Show loading state
                 : Row(
@@ -292,18 +287,23 @@ class _HomePageState extends State<HomePage> {
     //   );
     // }
 
-    return ListView(
-      children: [
-        //search schedule
-        SearchSchedule(),
-        SizedBox(height: 20),
-        //promo section
-        PromoHome(),
-        //offering
-        SizedBox(
-          height: 20,
-        ),
-      ],
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          //search schedule
+          // SizedBox(height: 24),
+          Expanded(child: SearchSchedule()),
+          // SizedBox(height: 24),
+          // SizedBox(height: 32),
+          //promo section
+          Expanded(child: PromoHome()),
+          //offering
+          // SizedBox(
+          //   height: 10,
+          // ),
+        ],
+      ),
     );
   }
 }

@@ -26,4 +26,5 @@ class Constant {
   static const booking = "tickets/seats";
   static const uniquePrice = "tickets/seats/uniqueprice";
   static const paymentConfirmation = "tickets/seats/edit";
+  static const absen = "tickets/seats/sampai";
 }

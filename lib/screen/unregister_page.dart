@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:redbus_project/screen/login_page.dart';
 import 'package:redbus_project/utils/theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class UnregisterPage extends StatelessWidget {
+class UnregisterPage extends StatefulWidget {
   const UnregisterPage({Key? key}) : super(key: key);
+
+  @override
+  State<UnregisterPage> createState() => _UnregisterPageState();
+}
+
+class _UnregisterPageState extends State<UnregisterPage> {
+  Future<void> openWhatsApp() async {
+    final Uri url = Uri.parse('https://wa.me/628164231047');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +96,7 @@ class UnregisterPage extends StatelessWidget {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
-                  // Optional: Add a contact admin action
+                  openWhatsApp();
                 },
                 style: OutlinedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 15),

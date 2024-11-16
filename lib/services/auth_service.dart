@@ -22,6 +22,14 @@ class AuthService {
     return (await sp).getString(Constant.userId) ?? "";
   }
 
+  Future<String> getUserName() async {
+    return (await sp).getString("userName") ?? "";
+  }
+
+  Future<String> getUserGender() async {
+    return (await sp).getString("gender") ?? "";
+  }
+
   Future<void> setToken(token) async {
     SharedPreferences spp = await SharedPreferences.getInstance();
     spp.setString(Constant.token, token);
@@ -30,6 +38,16 @@ class AuthService {
   Future<void> setUserId(userId) async {
     SharedPreferences spp = await SharedPreferences.getInstance();
     spp.setString(Constant.userId, userId);
+  }
+
+  Future<void> setUserName(userName) async {
+    SharedPreferences spp = await SharedPreferences.getInstance();
+    spp.setString("userName", userName);
+  }
+
+  Future<void> setUserGender(userGender) async {
+    SharedPreferences spp = await SharedPreferences.getInstance();
+    spp.setString("gender", userGender);
   }
 
   Future<void> clearPrefs() async {
@@ -88,13 +106,17 @@ class AuthService {
     }
   }
 
-  register(BuildContext context, String username, String password) async {
+  register(BuildContext context, String username, String password,
+      String gender, String phoneNumber, String fullName) async {
     final response = await HttpRequest(context).post(
         url: Constant.registerApiUrl,
         useToken: false,
         body: jsonEncode({
           Constant.username: username,
           Constant.password: password,
+          "gender": gender,
+          "noTelepon": phoneNumber,
+          "namaLengkap": fullName
         }));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -188,6 +210,8 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final user = User.fromJson(json.decode(response.body));
+      AuthService().setUserName(user.userName);
+      AuthService().setUserGender(user.gender);
 
       return user;
     } else {
